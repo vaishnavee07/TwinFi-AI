@@ -1,0 +1,174 @@
+name: TwinFi CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main", "develop"]
+
+env:
+  AZURE_CONTAINER_REGISTRY: "acrtwinfi"
+  RESOURCE_GROUP: "TwinFi-RG"
+  CLUSTER_NAME: "twinfi-aks"
+  IMAGE_NAME: "twinfi-api"
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install ruff mypy pytest pytest-cov pytest-asyncio httpx
+
+      - name: Lint with Ruff
+        run: ruff check backend/app/
+
+      - name: Type check with mypy
+        run: mypy backend/app/ --ignore-missing-imports
+        continue-on-error: true  # Non-blocking until full type annotations are added
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: twinfidb_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
+    env:
+      ENVIRONMENT: test
+      SECRET_KEY: test-secret-key-for-ci-minimum-32-characters-required
+      DATABASE_URL: postgresql+asyncpg://postgres:testpassword@localhost:5432/twinfidb_test
+      MONGO_URI: mongodb://localhost:27017/
+      REDIS_URL: redis://localhost:6379/0
+      KAFKA_BROKER_URL: localhost:9092
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest pytest-cov pytest-asyncio httpx
+
+      - name: Run Tests
+        run: |
+          cd backend
+          pytest tests/ --cov=app --cov-report=term-missing --cov-report=xml -v
+        continue-on-error: true  # Non-blocking until test suite is populated
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/coverage.xml
+        if: always()
+
+  docker-build-push:
+    name: Build & Push Docker Image
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate image metadata
+        id: meta
+        run: echo "version=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -t ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ env.IMAGE_NAME }}:latest \
+            -f backend/docker/Dockerfile.api \
+            backend/
+
+      # Uncomment when Azure credentials are configured:
+      # - name: Login to Azure Container Registry
+      #   uses: azure/docker-login@v1
+      #   with:
+      #     login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io
+      #     username: ${{ secrets.ACR_USERNAME }}
+      #     password: ${{ secrets.ACR_PASSWORD }}
+      #
+      # - name: Push Docker Image
+      #   run: |
+      #     docker tag ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+      #       ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      #     docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy-aks:
+    name: Deploy to Azure Kubernetes Service
+    needs: docker-build-push
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Uncomment when Azure credentials are configured:
+      # - name: Azure Login
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      #
+      # - name: Set AKS context
+      #   uses: azure/aks-set-context@v3
+      #   with:
+      #     resource-group: ${{ env.RESOURCE_GROUP }}
+      #     cluster-name: ${{ env.CLUSTER_NAME }}
+      #
+      # - name: Deploy to Kubernetes
+      #   run: |
+      #     kubectl apply -f backend/kubernetes/deployments/
+      #     kubectl set image deployment/twinfi-api \
+      #       twinfi-api=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+      #       --namespace twinfi-prod
+      #     kubectl rollout status deployment/twinfi-api --namespace twinfi-prod
+
+      - name: Deploy (placeholder)
+        run: echo "Deployment to AKS with image tag ${{ needs.docker-build-push.outputs.image_tag }}"

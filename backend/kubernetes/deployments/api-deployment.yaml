@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: twinfi-api
+  namespace: twinfi-prod
+  labels:
+    app: twinfi-api
+    version: "1.0.0"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: twinfi-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: twinfi-api
+    spec:
+      # Security: run as non-root user
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: twinfi-api
+        # Use specific SHA digest — never :latest in production
+        image: acr-twinfi.azurecr.io/twinfi-api:__IMAGE_TAG__
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        envFrom:
+        - secretRef:
+            name: twinfi-secrets
+        - configMapRef:
+            name: twinfi-config
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        # Container security
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+              - ALL
+        # Liveness probe: restart the pod if the app is unresponsive
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 20
+          failureThreshold: 3
+          timeoutSeconds: 5
+        # Readiness probe: only send traffic when the app is ready
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+          timeoutSeconds: 3
+        # Startup probe: give extra time for first startup (model loading)
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          failureThreshold: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: twinfi-api-service
+  namespace: twinfi-prod
+spec:
+  selector:
+    app: twinfi-api
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: twinfi-api-pdb
+  namespace: twinfi-prod
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: twinfi-api
