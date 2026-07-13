@@ -4,6 +4,9 @@ version = "1.0.0"
 description = "TwinFi AI - The World's First Living Financial Twin"
 authors = ["TwinFi Team <team@twinfi.ai>"]
 
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
