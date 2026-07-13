@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – The World's First Living Financial Twin</title>
+<meta name="description" content="TwinFi AI – AI-powered banking platform with Living Financial Twin technology"/>
+<link rel="stylesheet" href="assets/css/design-system.css"/>
+<style>
+html,body{min-height:100vh;margin:0;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;padding:40px 20px;box-sizing:border-box;}
+.hub{max-width:1200px;width:100%;margin:0 auto;}
+
+/* Hero */
+.hero{text-align:center;padding:60px 0 50px;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;background:rgba(0,245,255,0.08);border:1px solid var(--border-cyan);border-radius:var(--radius-full);font-size:12px;color:var(--cyan);font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:20px;}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 1.5s infinite;}
+.hero-title{font-family:var(--font-display);font-size:56px;font-weight:700;line-height:1.1;margin-bottom:16px;}
+.hero-title .gradient{background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-subtitle{font-size:18px;color:var(--text-secondary);max-width:600px;margin:0 auto 30px;line-height:1.6;}
+.hero-stats{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:50px;}
+.hs-item{text-align:center;}
+.hs-val{font-family:var(--font-display);font-size:28px;font-weight:700;background:var(--gradient-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hs-label{font-size:11px;color:var(--text-secondary);font-weight:500;}
+
+/* Surface Cards */
+.surfaces-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px;}
+@media(max-width:900px){.surfaces-grid{grid-template-columns:1fr;}}
+
+.surface-card{
+  padding:28px;border-radius:28px;border:1px solid;
+  cursor:pointer;transition:var(--transition-base);position:relative;overflow:hidden;
+  text-decoration:none;display:block;
+}
+.surface-card:hover{transform:translateY(-6px);}
+.sc-mobile{background:linear-gradient(145deg,rgba(0,245,255,0.08),rgba(14,23,38,0.95));border-color:rgba(0,245,255,0.2);}
+.sc-desktop{background:linear-gradient(145deg,rgba(138,43,226,0.1),rgba(14,23,38,0.95));border-color:rgba(138,43,226,0.25);}
+.sc-rm{background:linear-gradient(145deg,rgba(201,168,76,0.08),rgba(14,23,38,0.95));border-color:rgba(201,168,76,0.2);}
+.surface-card:hover.sc-mobile{box-shadow:0 20px 60px rgba(0,245,255,0.12);}
+.surface-card:hover.sc-desktop{box-shadow:0 20px 60px rgba(138,43,226,0.12);}
+.surface-card:hover.sc-rm{box-shadow:0 20px 60px rgba(201,168,76,0.1);}
+
+.sc-icon{font-size:44px;margin-bottom:14px;display:block;animation:float 4s ease-in-out infinite;}
+.sc-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--radius-full);font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;}
+.tag-mobile{background:rgba(0,245,255,0.12);color:var(--cyan);}
+.tag-desktop{background:rgba(138,43,226,0.12);color:#C77DFF;}
+.tag-rm{background:rgba(201,168,76,0.12);color:#C9A84C;}
+.sc-title{font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:8px;}
+.sc-desc{font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;}
+.sc-screens{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:18px;}
+.screen-chip{padding:3px 9px;background:rgba(255,255,255,0.05);border:1px solid var(--border-glass);border-radius:var(--radius-full);font-size:10px;color:var(--text-secondary);}
+.sc-cta{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--radius-full);font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body);}
+.cta-mobile{background:var(--gradient-main);color:#000;}
+.cta-desktop{background:linear-gradient(135deg,#8A2BE2,#C77DFF);color:#fff;}
+.cta-rm{background:linear-gradient(135deg,#C9A84C,#E8C87A);color:#000;}
+
+/* Mobile Gallery */
+.mobile-gallery{margin-bottom:40px;}
+.mg-title{font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:16px;text-align:center;}
+.mg-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+@media(max-width:900px){.mg-grid{grid-template-columns:repeat(3,1fr);}}
+.mg-item{padding:12px 14px;background:rgba(14,23,38,0.7);border:1px solid var(--border-glass);border-radius:16px;text-align:center;cursor:pointer;transition:var(--transition-fast);text-decoration:none;display:block;}
+.mg-item:hover{border-color:var(--border-cyan);background:rgba(0,245,255,0.04);}
+.mg-em{font-size:22px;margin-bottom:4px;}
+.mg-name{font-size:11px;color:var(--text-secondary);font-weight:500;}
+
+/* Footer */
+.hub-footer{text-align:center;padding:20px 0;border-top:1px solid var(--border-glass);}
+.hf-text{font-size:12px;color:var(--text-muted);}
+.hf-text strong{color:var(--text-secondary);}
+</style>
+</head>
+<body>
+<div class="hub">
+
+  <!-- Hero -->
+  <div class="hero animate-fade-in">
+    <div class="hero-badge">🧬 World's First Living Financial Twin</div>
+    <h1 class="hero-title">
+      <span class="gradient">TwinFi AI</span><br/>
+      Financial Operating System
+    </h1>
+    <p class="hero-subtitle">An AI-powered platform that creates a Living Financial Twin for every customer — continuously learning, predicting, and proactively guiding every financial decision.</p>
+    <div class="hero-stats">
+      <div class="hs-item"><div class="hs-val">19</div><div class="hs-label">Mobile Screens</div></div>
+      <div class="hs-item"><div class="hs-val">4</div><div class="hs-label">Desktop Pages</div></div>
+      <div class="hs-item"><div class="hs-val">1</div><div class="hs-label">RM Dashboard</div></div>
+      <div class="hs-item"><div class="hs-val">∞</div><div class="hs-label">AI Possibilities</div></div>
+    </div>
+  </div>
+
+  <!-- Surface Cards -->
+  <div class="surfaces-grid animate-fade-in delay-200">
+
+    <!-- Mobile -->
+    <a href="mobile/splash.html" class="surface-card sc-mobile">
+      <span class="sc-icon">📱</span>
+      <div class="sc-tag tag-mobile">📱 Mobile App</div>
+      <div class="sc-title">Mobile Banking Experience</div>
+      <div class="sc-desc">Premium mobile UI with 19 screens — from AI splash to holographic twin visualization, emotion intelligence, and parallel universe simulator.</div>
+      <div class="sc-screens">
+        <div class="screen-chip">🌟 Splash</div>
+        <div class="screen-chip">🖐 Login</div>
+        <div class="screen-chip">✨ Sign Up</div>
+        <div class="screen-chip">🏠 Home</div>
+        <div class="screen-chip">🧬 DNA</div>
+        <div class="screen-chip">👤 Twin</div>
+        <div class="screen-chip">🌌 Simulator</div>
+        <div class="screen-chip">🕸️ Network</div>
+        <div class="screen-chip">🌐 Economy</div>
+        <div class="screen-chip">🌊 Leakage</div>
+        <div class="screen-chip">😊 Emotion</div>
+        <div class="screen-chip">🤖 Coach</div>
+        <div class="screen-chip">🎯 Goals</div>
+        <div class="screen-chip">📊 Invest</div>
+        <div class="screen-chip">🛡️ Fraud</div>
+        <div class="screen-chip">🔔 Notifs</div>
+        <div class="screen-chip">⚙️ Settings</div>
+        <div class="screen-chip">👤 Profile</div>
+        <div class="screen-chip">✨ Insights</div>
+      </div>
+      <button class="sc-cta cta-mobile">Launch Mobile App →</button>
+    </a>
+
+    <!-- Desktop -->
+    <a href="desktop/dashboard.html" class="surface-card sc-desktop">
+      <span class="sc-icon" style="animation-delay:0.5s">🖥️</span>
+      <div class="sc-tag tag-desktop">🖥️ Desktop Dashboard</div>
+      <div class="sc-title">Executive Web Dashboard</div>
+      <div class="sc-desc">Full-scale intelligence hub with sidebar navigation, AI cash flow charts, holographic twin widget, investment performance, and goal tracking.</div>
+      <div class="sc-screens">
+        <div class="screen-chip">🏠 Overview</div>
+        <div class="screen-chip">🧬 DNA Viz</div>
+        <div class="screen-chip">🌌 Simulator</div>
+        <div class="screen-chip">🤖 AI Coach</div>
+        <div class="screen-chip">📊 Portfolio</div>
+        <div class="screen-chip">🛡️ Fraud</div>
+        <div class="screen-chip">📄 Reports</div>
+      </div>
+      <button class="sc-cta cta-desktop">Open Dashboard →</button>
+    </a>
+
+    <!-- RM -->
+    <a href="rm/dashboard.html" class="surface-card sc-rm">
+      <span class="sc-icon" style="animation-delay:1s">🏦</span>
+      <div class="sc-tag tag-rm">🏦 IDBI RM Portal</div>
+      <div class="sc-title">Relationship Manager Hub</div>
+      <div class="sc-desc">Enterprise-grade IDBI Bank employee interface with client portfolio intelligence, AUM tracking, AI-detected cross-sell opportunities, and priority alert system.</div>
+      <div class="sc-screens">
+        <div class="screen-chip">👥 Client Portfolio</div>
+        <div class="screen-chip">📊 AUM Chart</div>
+        <div class="screen-chip">🚨 Risk Alerts</div>
+        <div class="screen-chip">💡 Opportunities</div>
+        <div class="screen-chip">📈 Revenue Pipeline</div>
+        <div class="screen-chip">🧬 Twin Analysis</div>
+      </div>
+      <button class="sc-cta cta-rm">Open RM Dashboard →</button>
+    </a>
+  </div>
+
+  <!-- Mobile Screen Gallery -->
+  <div class="mobile-gallery animate-fade-in delay-400">
+    <div class="mg-title">Navigate Individual Mobile Screens</div>
+    <div class="mg-grid">
+      <a href="mobile/splash.html" class="mg-item"><div class="mg-em">🌟</div><div class="mg-name">Splash</div></a>
+      <a href="mobile/login.html" class="mg-item"><div class="mg-em">🔐</div><div class="mg-name">Login</div></a>
+      <a href="mobile/home.html" class="mg-item"><div class="mg-em">🏠</div><div class="mg-name">Home</div></a>
+      <a href="mobile/dna.html" class="mg-item"><div class="mg-em">🧬</div><div class="mg-name">DNA</div></a>
+      <a href="mobile/twin.html" class="mg-item"><div class="mg-em">👤</div><div class="mg-name">Twin</div></a>
+      <a href="mobile/simulator.html" class="mg-item"><div class="mg-em">🌌</div><div class="mg-name">Simulator</div></a>
+      <a href="mobile/network.html" class="mg-item"><div class="mg-em">🕸️</div><div class="mg-name">Network</div></a>
+      <a href="mobile/economy.html" class="mg-item"><div class="mg-em">🌐</div><div class="mg-name">Economy</div></a>
+      <a href="mobile/leakage.html" class="mg-item"><div class="mg-em">🌊</div><div class="mg-name">Leakage</div></a>
+      <a href="mobile/emotion.html" class="mg-item"><div class="mg-em">😊</div><div class="mg-name">Emotion</div></a>
+      <a href="mobile/coach.html" class="mg-item"><div class="mg-em">🤖</div><div class="mg-name">Coach</div></a>
+      <a href="mobile/goals.html" class="mg-item"><div class="mg-em">🎯</div><div class="mg-name">Goals</div></a>
+      <a href="mobile/investments.html" class="mg-item"><div class="mg-em">📊</div><div class="mg-name">Investments</div></a>
+      <a href="mobile/fraud.html" class="mg-item"><div class="mg-em">🛡️</div><div class="mg-name">Fraud</div></a>
+      <a href="mobile/notifications.html" class="mg-item"><div class="mg-em">🔔</div><div class="mg-name">Notifs</div></a>
+      <a href="mobile/settings.html" class="mg-item"><div class="mg-em">⚙️</div><div class="mg-name">Settings</div></a>
+      <a href="mobile/profile.html" class="mg-item"><div class="mg-em">👤</div><div class="mg-name">Profile</div></a>
+      <a href="mobile/insights.html" class="mg-item"><div class="mg-em">✨</div><div class="mg-name">Insights</div></a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="hub-footer">
+    <div class="hf-text"><strong>TwinFi AI</strong> — Designed by Award-winning UI/UX · Powered by AI · Built for IDBI Bank · Mumbai 2026</div>
+  </div>
+
+</div>
+</body>
+</html>
