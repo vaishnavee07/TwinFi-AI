@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Relationship Manager Dashboard | IDBI Bank</title>
+<meta name="description" content="IDBI Bank Enterprise Relationship Manager Intelligence Dashboard powered by TwinFi AI"/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg-primary);}
+
+/* RM SPECIFIC THEME — IDBI Premium Deep Navy */
+:root{
+  --rm-primary: #050E1A;
+  --rm-secondary: #071220;
+  --rm-accent: #003FBE;
+  --rm-gold: #C9A84C;
+  --rm-cyan: #00C4FF;
+  --rm-success: #00D97E;
+  --rm-warning: #F5A623;
+  --rm-danger: #E5534B;
+}
+
+html,body{background:var(--rm-primary);}
+
+/* Layout */
+.rm-app{display:flex;height:100vh;overflow:hidden;}
+
+/* Left sidebar */
+.rm-sidebar{
+  width:240px;min-width:240px;
+  background:var(--rm-secondary);
+  border-right:1px solid rgba(0,196,255,0.08);
+  display:flex;flex-direction:column;
+}
+.rm-logo-bar{
+  padding:18px 20px;border-bottom:1px solid rgba(0,196,255,0.08);
+  display:flex;align-items:center;gap:12px;
+}
+.rm-logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#003FBE,#0056D6);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 14px rgba(0,63,190,0.4);}
+.rm-logo-text{font-family:var(--font-display);font-size:13px;font-weight:700;line-height:1.2;}
+.rm-logo-sub{font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.rm-employee-chip{margin:14px 14px 0;padding:12px;border-radius:14px;background:rgba(0,196,255,0.05);border:1px solid rgba(0,196,255,0.1);display:flex;align-items:center;gap:10px;}
+.rm-emp-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#E8C87A);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#000;flex-shrink:0;}
+.rm-emp-name{font-size:13px;font-weight:700;}
+.rm-emp-role{font-size:10px;color:rgba(255,255,255,0.5);}
+.rm-emp-badge{font-size:9px;color:#C9A84C;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);padding:2px 7px;border-radius:var(--radius-full);margin-top:4px;display:inline-block;}
+
+.rm-nav{padding:12px;}
+.rm-nav-label{font-size:9px;color:rgba(255,255,255,0.3);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0 8px;margin-bottom:6px;margin-top:10px;}
+.rm-nav-item{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;transition:var(--transition-fast);color:rgba(255,255,255,0.55);font-size:13px;font-weight:500;margin-bottom:2px;}
+.rm-nav-item:hover{background:rgba(255,255,255,0.04);color:#fff;}
+.rm-nav-item.active{background:rgba(0,196,255,0.1);color:#00C4FF;border:1px solid rgba(0,196,255,0.15);}
+.rm-nav-item .ni{font-size:16px;flex-shrink:0;}
+.rm-nav-item .badge{margin-left:auto;padding:1px 7px;border-radius:var(--radius-full);background:rgba(229,83,75,0.2);color:var(--rm-danger);font-size:10px;font-weight:700;}
+
+.rm-sidebar-foot{margin-top:auto;padding:14px;border-top:1px solid rgba(0,196,255,0.08);}
+.rm-foot-btns{display:flex;gap:8px;}
+.rm-foot-btn{flex:1;padding:8px;border-radius:10px;border:1px solid rgba(0,196,255,0.12);background:rgba(255,255,255,0.03);font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer;text-align:center;transition:var(--transition-fast);}
+.rm-foot-btn:hover{border-color:rgba(0,196,255,0.3);color:#fff;}
+
+/* Top Bar */
+.rm-topbar{
+  height:58px;background:rgba(5,14,26,0.8);backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(0,196,255,0.08);
+  display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;
+}
+.rm-topbar-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:#fff;}
+.rm-topbar-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-left:4px;}
+.rm-search{flex:1;max-width:380px;position:relative;}
+.rm-search input{width:100%;padding:9px 14px 9px 36px;background:rgba(255,255,255,0.05);border:1px solid rgba(0,196,255,0.1);border-radius:var(--radius-full);color:#fff;font-size:13px;outline:none;transition:var(--transition-fast);box-sizing:border-box;}
+.rm-search input:focus{border-color:rgba(0,196,255,0.4);}
+.rm-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,0.3);}
+.rm-topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+.rm-top-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(0,196,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;position:relative;}
+.rm-notif{width:8px;height:8px;border-radius:50%;background:var(--rm-danger);position:absolute;top:-1px;right:-1px;border:2px solid var(--rm-primary);}
+.rm-ai-btn{background:linear-gradient(135deg,#003FBE,#0070E0);color:#fff;font-size:12px;font-weight:700;height:34px;padding:0 16px;border-radius:var(--radius-full);border:none;cursor:pointer;display:flex;align-items:center;gap:5px;}
+
+/* Main Content */
+.rm-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.rm-content{flex:1;overflow-y:auto;padding:20px;}
+.rm-content::-webkit-scrollbar{width:4px;}
+.rm-content::-webkit-scrollbar-thumb{background:rgba(0,196,255,0.1);}
+
+/* KPI Cards */
+.rm-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;}
+.rm-kpi{padding:16px;background:var(--rm-secondary);border:1px solid rgba(0,196,255,0.08);border-radius:14px;cursor:pointer;transition:var(--transition-base);position:relative;overflow:hidden;}
+.rm-kpi:hover{border-color:rgba(0,196,255,0.25);transform:translateY(-2px);}
+.rm-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#003FBE,#00C4FF);opacity:0;transition:var(--transition-fast);}
+.rm-kpi:hover::before{opacity:1;}
+.rm-kpi-icon{font-size:18px;margin-bottom:8px;}
+.rm-kpi-label{font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:3px;}
+.rm-kpi-val{font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:3px;}
+.rm-kpi-change{font-size:11px;font-weight:600;}
+.pos{color:var(--rm-success);}.neg{color:var(--rm-danger);}
+
+/* Main Grid */
+.rm-main-grid{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:20px;}
+.rm-chart-card{padding:20px;background:var(--rm-secondary);border:1px solid rgba(0,196,255,0.08);border-radius:18px;}
+.rcc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.rcc-title{font-weight:700;font-size:15px;}
+.rcc-subtitle{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.rcc-actions{display:flex;gap:6px;}
+.rcc-btn{padding:5px 12px;border-radius:var(--radius-full);font-size:11px;font-weight:600;cursor:pointer;border:none;transition:var(--transition-fast);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);}
+.rcc-btn.active{background:rgba(0,196,255,0.12);color:#00C4FF;}
+.chart-wrap-rm{height:240px;position:relative;}
+
+/* Alerts */
+.rm-alerts{display:flex;flex-direction:column;gap:10px;}
+.rm-alert-item{
+  padding:14px;border-radius:14px;border:1px solid;cursor:pointer;transition:var(--transition-fast);
+}
+.rm-alert-item:hover{transform:translateX(3px);}
+.rma-urgent{background:rgba(229,83,75,0.06);border-color:rgba(229,83,75,0.25);}
+.rma-warn{background:rgba(245,166,35,0.06);border-color:rgba(245,166,35,0.2);}
+.rma-info{background:rgba(0,196,255,0.04);border-color:rgba(0,196,255,0.15);}
+.rmai-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.rmai-icon{font-size:16px;}
+.rmai-title{font-weight:700;font-size:13px;flex:1;}
+.rmai-badge{padding:2px 8px;border-radius:var(--radius-full);font-size:10px;font-weight:700;}
+.rmai-body{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.4;}
+.rmai-action{margin-top:6px;font-size:11px;font-weight:600;color:#00C4FF;cursor:pointer;}
+
+/* Client Table */
+.rm-clients-section{margin-bottom:20px;}
+.rcs-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.rcs-title{font-weight:700;font-size:15px;}
+.rcs-filters{display:flex;gap:6px;}
+.rcs-filter{padding:5px 12px;border-radius:var(--radius-full);font-size:11px;font-weight:600;cursor:pointer;border:none;transition:var(--transition-fast);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);}
+.rcs-filter.active{background:rgba(0,196,255,0.12);color:#00C4FF;}
+.rcs-search-add{display:flex;gap:8px;}
+.add-client-btn{padding:6px 16px;border-radius:var(--radius-full);background:linear-gradient(135deg,#003FBE,#0070E0);border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+
+.rm-table{width:100%;border-collapse:collapse;}
+.rm-table th{padding:10px 14px;text-align:left;font-size:11px;color:rgba(255,255,255,0.35);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border-bottom:1px solid rgba(0,196,255,0.08);}
+.rm-table td{padding:12px 14px;border-bottom:1px solid rgba(0,196,255,0.05);font-size:13px;vertical-align:middle;}
+.rm-table tr:hover td{background:rgba(0,196,255,0.03);}
+.client-cell{display:flex;align-items:center;gap:10px;}
+.client-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.client-name{font-weight:600;font-size:13px;}
+.client-acc{font-size:10px;color:rgba(255,255,255,0.4);}
+.health-bar{width:60px;height:5px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden;display:inline-block;}
+.hb-fill{height:100%;border-radius:5px;}
+.action-icons{display:flex;gap:6px;}
+.ai-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;background:rgba(255,255,255,0.05);border:1px solid rgba(0,196,255,0.1);transition:var(--transition-fast);}
+.ai-icon:hover{border-color:rgba(0,196,255,0.3);}
+.score-pill{display:inline-flex;align-items:center;padding:3px 8px;border-radius:var(--radius-full);font-size:11px;font-weight:700;}
+.sp-high{background:rgba(0,217,126,0.1);color:var(--rm-success);}
+.sp-med{background:rgba(245,166,35,0.1);color:var(--rm-warning);}
+.sp-low{background:rgba(229,83,75,0.1);color:var(--rm-danger);}
+
+/* Right Stats Panel */
+.rm-right-stats{display:flex;flex-direction:column;gap:14px;}
+.rrs-card{padding:16px;background:var(--rm-secondary);border:1px solid rgba(0,196,255,0.08);border-radius:18px;}
+.rrs-title{font-size:12px;color:rgba(255,255,255,0.4);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
+.portfolio-mix{height:200px;position:relative;}
+.portfolio-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.pl-item{display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,0.5);}
+.pl-dot{width:8px;height:8px;border-radius:50%;}
+.opportunity-list{display:flex;flex-direction:column;gap:8px;}
+.opp-item{display:flex;gap:10px;align-items:flex-start;padding:10px;background:rgba(255,255,255,0.03);border-radius:10px;cursor:pointer;border:1px solid transparent;transition:var(--transition-fast);}
+.opp-item:hover{border-color:rgba(0,196,255,0.15);}
+.opp-icon{font-size:16px;flex-shrink:0;}
+.opp-title{font-size:12px;font-weight:600;margin-bottom:2px;}
+.opp-desc{font-size:11px;color:rgba(255,255,255,0.4);}
+.opp-val{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--rm-success);margin-top:3px;}
+</style>
+</head>
+<body>
+<div class="rm-app">
+  <!-- Sidebar -->
+  <div class="rm-sidebar">
+    <div class="rm-logo-bar">
+      <div class="rm-logo">🏦</div>
+      <div>
+        <div class="rm-logo-text">IDBI Bank</div>
+        <div class="rm-logo-sub">Powered by TwinFi AI</div>
+      </div>
+    </div>
+
+    <div class="rm-employee-chip">
+      <div class="rm-emp-av">N</div>
+      <div>
+        <div class="rm-emp-name">Neha Kapoor</div>
+        <div class="rm-emp-role">Sr. Relationship Manager</div>
+        <div class="rm-emp-badge">🌟 Premium Portfolio</div>
+      </div>
+    </div>
+
+    <div class="rm-nav">
+      <div class="rm-nav-label">Dashboard</div>
+      <div class="rm-nav-item active"><span class="ni">📊</span> RM Overview</div>
+      <div class="rm-nav-item"><span class="ni">👥</span> Client Portfolio <span class="badge">2</span></div>
+      <div class="rm-nav-item"><span class="ni">🧬</span> Twin Insights</div>
+      <div class="rm-nav-item"><span class="ni">📈</span> Revenue Pipeline</div>
+      <div class="rm-nav-item"><span class="ni">🔮</span> AI Predictions</div>
+
+      <div class="rm-nav-label">Management</div>
+      <div class="rm-nav-item"><span class="ni">💬</span> Communications</div>
+      <div class="rm-nav-item"><span class="ni">📋</span> Compliance</div>
+      <div class="rm-nav-item"><span class="ni">🎯</span> Targets &amp; KPIs</div>
+      <div class="rm-nav-item"><span class="ni">🛡️</span> Risk Monitor</div>
+
+      <div class="rm-nav-label">Reports</div>
+      <div class="rm-nav-item"><span class="ni">📄</span> Monthly Report</div>
+      <div class="rm-nav-item"><span class="ni">📧</span> Scheduled Reports</div>
+    </div>
+
+    <div class="rm-sidebar-foot">
+      <div class="rm-foot-btns">
+        <div class="rm-foot-btn">⚙️ Settings</div>
+        <div class="rm-foot-btn">🔓 Logout</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Panel -->
+  <div class="rm-main">
+    <!-- Top Bar -->
+    <div class="rm-topbar">
+      <div>
+        <span class="rm-topbar-title">RM Intelligence Hub</span>
+        <span class="rm-topbar-sub">· IDBI Mumbai Central Branch</span>
+      </div>
+      <div class="rm-search" style="margin-left:24px;">
+        <span class="rm-search-icon">🔍</span>
+        <input type="text" placeholder="Search clients, accounts, opportunities..."/>
+      </div>
+      <div class="rm-topbar-right">
+        <div class="rm-top-btn">🔔<div class="rm-notif"></div></div>
+        <div class="rm-top-btn">📧</div>
+        <div class="rm-top-btn">📋</div>
+        <div class="rm-ai-btn">🧠 AI Copilot</div>
+        <div style="padding:2px 12px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);border-radius:var(--radius-full);font-size:11px;font-weight:700;color:#C9A84C;">Jul 9, 2026</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="rm-content">
+
+      <!-- KPIs -->
+      <div class="rm-kpis animate-fade-in">
+        <div class="rm-kpi">
+          <div class="rm-kpi-icon">👥</div>
+          <div class="rm-kpi-label">Total Clients</div>
+          <div class="rm-kpi-val" style="color:#00C4FF">248</div>
+          <div class="rm-kpi-change pos">↑ +12 this month</div>
+        </div>
+        <div class="rm-kpi">
+          <div class="rm-kpi-icon">💰</div>
+          <div class="rm-kpi-label">AUM (Cr)</div>
+          <div class="rm-kpi-val" style="color:#00D97E">₹42.8Cr</div>
+          <div class="rm-kpi-change pos">↑ +8.4% MoM</div>
+        </div>
+        <div class="rm-kpi">
+          <div class="rm-kpi-icon">📈</div>
+          <div class="rm-kpi-label">Revenue (Mo)</div>
+          <div class="rm-kpi-val" style="color:#C9A84C">₹14.2L</div>
+          <div class="rm-kpi-change pos">↑ 94% of target</div>
+        </div>
+        <div class="rm-kpi">
+          <div class="rm-kpi-icon">⭐</div>
+          <div class="rm-kpi-label">NPS Score</div>
+          <div class="rm-kpi-val" style="color:#00D97E">82</div>
+          <div class="rm-kpi-change pos">↑ +4 pts</div>
+        </div>
+        <div class="rm-kpi">
+          <div class="rm-kpi-icon">⚠️</div>
+          <div class="rm-kpi-label">Risk Alerts</div>
+          <div class="rm-kpi-val" style="color:#E5534B">7</div>
+          <div class="rm-kpi-change neg">↑ 2 new today</div>
+        </div>
+        <div class="rm-kpi">
+          <div class="rm-kpi-icon">💡</div>
+          <div class="rm-kpi-label">AI Opportunities</div>
+          <div class="rm-kpi-val" style="color:#00C4FF">34</div>
+          <div class="rm-kpi-change pos">↑ Cross-sell ready</div>
+        </div>
+      </div>
+
+      <!-- Main Grid -->
+      <div class="rm-main-grid animate-fade-in delay-200">
+        <!-- AUM Chart -->
+        <div class="rm-chart-card">
+          <div class="rcc-header">
+            <div>
+              <div class="rcc-title">AUM Growth Trajectory</div>
+              <div class="rcc-subtitle">₹42.8Cr managed · 248 clients · Mumbai Central</div>
+            </div>
+            <div class="rcc-actions">
+              <button class="rcc-btn">1M</button>
+              <button class="rcc-btn active">6M</button>
+              <button class="rcc-btn">1Y</button>
+            </div>
+          </div>
+          <div class="chart-wrap-rm"><canvas id="aumChart"></canvas></div>
+        </div>
+
+        <!-- Priority Alerts -->
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+            <span>🚨 Priority Alerts</span>
+            <span style="font-size:11px;color:#00C4FF;cursor:pointer;">View all 7</span>
+          </div>
+          <div class="rm-alerts">
+            <div class="rm-alert-item rma-urgent">
+              <div class="rmai-header">
+                <span class="rmai-icon">🔴</span>
+                <span class="rmai-title">Loan Default Risk — Mehta Group</span>
+                <span class="rmai-badge" style="background:rgba(229,83,75,0.15);color:#E5534B;">URGENT</span>
+              </div>
+              <div class="rmai-body">Account #IDBI-MH-4821 missed EMI. AI predicts 73% default risk. Call required today.</div>
+              <div class="rmai-action">→ Contact Client · Generate Report</div>
+            </div>
+            <div class="rm-alert-item rma-warn">
+              <div class="rmai-header">
+                <span class="rmai-icon">🟡</span>
+                <span class="rmai-title">Portfolio Rebalance — 12 Clients</span>
+                <span class="rmai-badge" style="background:rgba(245,166,35,0.15);color:#F5A623;">ACTION</span>
+              </div>
+              <div class="rmai-body">12 client portfolios need rebalancing after market shift. AI-optimized plans ready.</div>
+              <div class="rmai-action">→ View Rebalance Plans</div>
+            </div>
+            <div class="rm-alert-item rma-info">
+              <div class="rmai-header">
+                <span class="rmai-icon">💡</span>
+                <span class="rmai-title">Cross-Sell Opportunity — 8 Clients</span>
+                <span class="rmai-badge" style="background:rgba(0,196,255,0.12);color:#00C4FF;">REVENUE</span>
+              </div>
+              <div class="rmai-body">8 clients match profile for IDBI's new Flexi FD product. Potential AUM: ₹4.2Cr.</div>
+              <div class="rmai-action">→ Launch Campaign · Call Center</div>
+            </div>
+            <div class="rm-alert-item rma-info">
+              <div class="rmai-header">
+                <span class="rmai-icon">🎂</span>
+                <span class="rmai-title">Client Birthdays This Week — 4</span>
+                <span class="rmai-badge" style="background:rgba(0,196,255,0.12);color:#00C4FF;">ENGAGE</span>
+              </div>
+              <div class="rmai-body">4 premium clients have birthdays. AI-drafted personalized greetings ready to send.</div>
+              <div class="rmai-action">→ Send Greetings</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Client Table -->
+      <div class="rm-clients-section animate-fade-in delay-300">
+        <div class="rcs-header">
+          <div>
+            <div class="rcs-title">Client Intelligence Portfolio</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="rcs-filters">
+              <button class="rcs-filter active">All (248)</button>
+              <button class="rcs-filter">⚠️ At Risk (7)</button>
+              <button class="rcs-filter">💡 Opportunity (34)</button>
+              <button class="rcs-filter">🌟 Premium (52)</button>
+            </div>
+            <button class="add-client-btn">+ Add Client</button>
+          </div>
+        </div>
+        <div style="background:var(--rm-secondary);border:1px solid rgba(0,196,255,0.08);border-radius:16px;overflow:hidden;">
+          <table class="rm-table" style="width:100%;">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Twin Health</th>
+                <th>AUM</th>
+                <th>Credit Score</th>
+                <th>Opportunities</th>
+                <th>Risk Level</th>
+                <th>Next Action</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="client-cell"><div class="client-av" style="background:linear-gradient(135deg,#00C4FF,#8A2BE2);color:#fff;">A</div><div><div class="client-name">Arjun Mehta</div><div class="client-acc">IDBI-MH-3841 · Premium</div></div></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div class="health-bar"><div class="hb-fill" style="width:87%;background:linear-gradient(90deg,#00D97E,#00C4FF)"></div></div><span style="font-size:11px;font-weight:700;color:#00D97E;">87</span></div></td>
+                <td><span style="font-family:var(--font-mono);color:#fff;font-weight:600;">₹16.2L</span></td>
+                <td><span class="score-pill sp-high">782</span></td>
+                <td><span style="font-size:12px;color:#00C4FF;">SIP Increase + ELSS</span></td>
+                <td><span class="score-pill" style="background:rgba(0,217,126,0.1);color:#00D97E;">Low</span></td>
+                <td><span style="font-size:12px;color:rgba(255,255,255,0.5);">Review Jul 15</span></td>
+                <td><div class="action-icons"><div class="ai-icon" title="Twin Analysis">🧬</div><div class="ai-icon" title="Call">📞</div><div class="ai-icon" title="Message">💬</div><div class="ai-icon" title="Report">📄</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="client-cell"><div class="client-av" style="background:linear-gradient(135deg,#FFB800,#FF8C00);color:#000;">P</div><div><div class="client-name">Priya Sharma</div><div class="client-acc">IDBI-MH-2291 · Gold</div></div></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div class="health-bar"><div class="hb-fill" style="width:72%;background:linear-gradient(90deg,#F5A623,#FFB800)"></div></div><span style="font-size:11px;font-weight:700;color:#F5A623;">72</span></div></td>
+                <td><span style="font-family:var(--font-mono);color:#fff;font-weight:600;">₹28.4L</span></td>
+                <td><span class="score-pill sp-high">756</span></td>
+                <td><span style="font-size:12px;color:#00C4FF;">Flexi FD Product</span></td>
+                <td><span class="score-pill" style="background:rgba(245,166,35,0.1);color:#F5A623;">Medium</span></td>
+                <td><span style="font-size:12px;color:rgba(255,255,255,0.5);">Call Today</span></td>
+                <td><div class="action-icons"><div class="ai-icon">🧬</div><div class="ai-icon">📞</div><div class="ai-icon">💬</div><div class="ai-icon">📄</div></div></td>
+              </tr>
+              <tr style="background:rgba(229,83,75,0.03);">
+                <td><div class="client-cell"><div class="client-av" style="background:linear-gradient(135deg,#FF4D6D,#FF1744);color:#fff;">R</div><div><div class="client-name">Rahul Mehta Group</div><div class="client-acc">IDBI-MH-4821 · Corporate ⚠️</div></div></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div class="health-bar"><div class="hb-fill" style="width:34%;background:#E5534B"></div></div><span style="font-size:11px;font-weight:700;color:#E5534B;">34</span></div></td>
+                <td><span style="font-family:var(--font-mono);color:#fff;font-weight:600;">₹1.8Cr</span></td>
+                <td><span class="score-pill sp-low">618</span></td>
+                <td><span style="font-size:12px;color:#E5534B;">URGENT: EMI Review</span></td>
+                <td><span class="score-pill sp-low">High</span></td>
+                <td><span style="font-size:12px;color:#E5534B;">Call Today ⚠️</span></td>
+                <td><div class="action-icons"><div class="ai-icon">🧬</div><div class="ai-icon">📞</div><div class="ai-icon">💬</div><div class="ai-icon">📄</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="client-cell"><div class="client-av" style="background:linear-gradient(135deg,#8A2BE2,#C77DFF);color:#fff;">S</div><div><div class="client-name">Sunita Agarwal</div><div class="client-acc">IDBI-MH-5512 · Wealth</div></div></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div class="health-bar"><div class="hb-fill" style="width:91%;background:linear-gradient(90deg,#00D97E,#00C4FF)"></div></div><span style="font-size:11px;font-weight:700;color:#00D97E;">91</span></div></td>
+                <td><span style="font-family:var(--font-mono);color:#fff;font-weight:600;">₹3.2Cr</span></td>
+                <td><span class="score-pill sp-high">810</span></td>
+                <td><span style="font-size:12px;color:#00C4FF;">Wealth Products</span></td>
+                <td><span class="score-pill sp-high">Low</span></td>
+                <td><span style="font-size:12px;color:rgba(255,255,255,0.5);">Review Aug 1</span></td>
+                <td><div class="action-icons"><div class="ai-icon">🧬</div><div class="ai-icon">📞</div><div class="ai-icon">💬</div><div class="ai-icon">📄</div></div></td>
+              </tr>
+              <tr>
+                <td><div class="client-cell"><div class="client-av" style="background:linear-gradient(135deg,#00F5FF,#00D4AA);color:#000;">K</div><div><div class="client-name">Karan Bhatia</div><div class="client-acc">IDBI-MH-6678 · Standard</div></div></div></td>
+                <td><div style="display:flex;align-items:center;gap:6px;"><div class="health-bar"><div class="hb-fill" style="width:58%;background:linear-gradient(90deg,#F5A623,#00C4FF)"></div></div><span style="font-size:11px;font-weight:700;color:#F5A623;">58</span></div></td>
+                <td><span style="font-family:var(--font-mono);color:#fff;font-weight:600;">₹4.8L</span></td>
+                <td><span class="score-pill sp-med">698</span></td>
+                <td><span style="font-size:12px;color:#00C4FF;">Upgrade Account</span></td>
+                <td><span class="score-pill" style="background:rgba(245,166,35,0.1);color:#F5A623;">Medium</span></td>
+                <td><span style="font-size:12px;color:rgba(255,255,255,0.5);">Follow-up Jul 12</span></td>
+                <td><div class="action-icons"><div class="ai-icon">🧬</div><div class="ai-icon">📞</div><div class="ai-icon">💬</div><div class="ai-icon">📄</div></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bottom Stats Row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;" class="animate-fade-in delay-400">
+        <!-- Portfolio Mix -->
+        <div class="rrs-card">
+          <div class="rrs-title">Portfolio Mix (by AUM)</div>
+          <div class="portfolio-mix"><canvas id="portfolioDonut"></canvas></div>
+          <div class="portfolio-legend">
+            <div class="pl-item"><div class="pl-dot" style="background:#00C4FF"></div>Mutual Funds 38%</div>
+            <div class="pl-item"><div class="pl-dot" style="background:#C9A84C"></div>FDs 28%</div>
+            <div class="pl-item"><div class="pl-dot" style="background:#8A2BE2"></div>Stocks 18%</div>
+            <div class="pl-item"><div class="pl-dot" style="background:#00D97E"></div>Loans 12%</div>
+            <div class="pl-item"><div class="pl-dot" style="background:#FF4D6D"></div>Other 4%</div>
+          </div>
+        </div>
+
+        <!-- Revenue Pipeline -->
+        <div class="rrs-card">
+          <div class="rrs-title">Revenue Pipeline (Jul 2026)</div>
+          <div style="height:200px;position:relative;margin-bottom:0;"><canvas id="revChart"></canvas></div>
+        </div>
+
+        <!-- AI Opportunities -->
+        <div class="rrs-card">
+          <div class="rrs-title">AI-Detected Opportunities</div>
+          <div class="opportunity-list">
+            <div class="opp-item">
+              <span class="opp-icon">🏦</span>
+              <div>
+                <div class="opp-title">Flexi FD Cross-sell</div>
+                <div class="opp-desc">8 clients match — 8.25% special rate</div>
+                <div class="opp-val">+₹4.2Cr AUM potential</div>
+              </div>
+            </div>
+            <div class="opp-item">
+              <span class="opp-icon">📈</span>
+              <div>
+                <div class="opp-title">SIP Upgrade Campaign</div>
+                <div class="opp-desc">22 clients with surplus &gt;₹20K/mo</div>
+                <div class="opp-val">+₹2.1Cr AUM potential</div>
+              </div>
+            </div>
+            <div class="opp-item">
+              <span class="opp-icon">🛡️</span>
+              <div>
+                <div class="opp-title">Insurance Gap Coverage</div>
+                <div class="opp-desc">15 clients underinsured — AI alert</div>
+                <div class="opp-val">₹12.6L premium potential</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* AUM Chart */
+new Chart(document.getElementById('aumChart').getContext('2d'),{
+  type:'line',
+  data:{
+    labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug (proj)'],
+    datasets:[
+      {label:'Total AUM',data:[36.2,37.8,38.5,39.1,40.2,41.6,42.8,44.5].map(v=>v*10000000),borderColor:'#00C4FF',backgroundColor:'rgba(0,196,255,0.06)',fill:true,tension:0.4,pointRadius:4,borderWidth:2.5,pointBackgroundColor:'#00C4FF'},
+      {label:'Revenue',data:[11.2,11.8,12.4,12.1,13.2,13.8,14.2,15.0].map(v=>v*100000),borderColor:'#C9A84C',fill:false,tension:0.4,pointRadius:3,borderWidth:1.5,borderDash:[6,3],pointBackgroundColor:'#C9A84C'},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'rgba(255,255,255,0.5)',boxWidth:10,font:{size:11}}}},
+    scales:{
+      x:{grid:{color:'rgba(0,196,255,0.04)'},ticks:{color:'rgba(255,255,255,0.4)',font:{size:11}}},
+      y:{grid:{color:'rgba(0,196,255,0.04)'},ticks:{color:'rgba(255,255,255,0.4)',font:{size:10},callback:v=>'₹'+Math.round(v/10000000*10)/10+'Cr'}}
+    }
+  }
+});
+
+/* Portfolio Donut */
+new Chart(document.getElementById('portfolioDonut').getContext('2d'),{
+  type:'doughnut',
+  data:{labels:['MF','FD','Stocks','Loans','Other'],datasets:[{data:[38,28,18,12,4],backgroundColor:['#00C4FF','#C9A84C','#8A2BE2','#00D97E','#FF4D6D'],borderWidth:0,hoverOffset:4}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false}}}
+});
+
+/* Revenue Chart */
+new Chart(document.getElementById('revChart').getContext('2d'),{
+  type:'bar',
+  data:{
+    labels:['MF Comm','FD Int','Loans','Ins','Cross-sell'],
+    datasets:[{data:[580000,420000,280000,210000,130000],backgroundColor:['rgba(0,196,255,0.7)','rgba(201,168,76,0.7)','rgba(0,217,126,0.7)','rgba(138,43,226,0.7)','rgba(255,184,0,0.6)'],borderRadius:8,borderSkipped:false}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,196,255,0.04)'},ticks:{color:'rgba(255,255,255,0.4)',font:{size:10}}},y:{grid:{color:'rgba(0,196,255,0.04)'},ticks:{color:'rgba(255,255,255,0.4)',font:{size:10},callback:v=>'₹'+v/100000+'L'}}}}
+});
+</script>
+</body>
+</html>

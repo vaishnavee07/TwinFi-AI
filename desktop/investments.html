@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI - Investments</title>
+<meta name="description" content="TwinFi AI Premium Executive Dashboard"/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../assets/js/api-client.js"></script>
+<style>
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg-primary); }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px; min-width: 220px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-glass);
+  display: flex; flex-direction: column;
+  padding: 0;
+  overflow-y: auto; z-index: 10;
+}
+.sidebar::-webkit-scrollbar { display: none; }
+
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border-glass);
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-gem {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: var(--gradient-main);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; box-shadow: 0 0 12px rgba(0,245,255,0.3);
+}
+.logo-text { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+.logo-sub { font-size: 9px; color: var(--text-muted); }
+
+.nav-section { padding: 12px 12px 4px; }
+.nav-section-label { font-size: 9px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 4px; }
+
+.nav-item-desk {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 10px;
+  cursor: pointer; transition: var(--transition-fast);
+  text-decoration: none; color: var(--text-secondary);
+  font-size: 13px; font-weight: 500; margin-bottom: 1px;
+}
+.nav-item-desk:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+.nav-item-desk.active { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(0,245,255,0.15); }
+.nav-item-desk .ni { font-size: 15px; flex-shrink: 0; }
+
+.sidebar-footer {
+  margin-top: auto; padding: 16px;
+  border-top: 1px solid var(--border-glass);
+}
+.user-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px; border-radius: 12px;
+  background: rgba(255,255,255,0.03); cursor: pointer;
+}
+.user-pill-av { width: 32px; height: 32px; border-radius: 50%; background: var(--gradient-main); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #000; }
+.user-pill-name { font-size: 13px; font-weight: 600; }
+.user-pill-role { font-size: 10px; color: var(--text-muted); }
+
+/* ── Top Navbar ── */
+.top-navbar {
+  height: 56px;
+  background: rgba(5,8,22,0.7);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border-glass);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 12px; flex-shrink: 0;
+}
+.search-wrap {
+  flex: 1; max-width: 360px; position: relative;
+}
+.search-wrap input {
+  width: 100%; padding: 8px 14px 8px 36px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  color: var(--text-primary); font-size: 13px; outline: none;
+  transition: var(--transition-fast);
+}
+.search-wrap input:focus { border-color: var(--cyan); }
+.search-wrap .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; }
+.navbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.nb-btn { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; transition: var(--transition-fast); position: relative; }
+.nb-btn:hover { border-color: var(--border-cyan); }
+.nb-btn .notif-badge { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); border: 2px solid var(--bg-primary); }
+.nb-ai { background: var(--gradient-main); color: #000; font-size: 13px; font-weight: 700; width: auto; padding: 0 14px; border-radius: var(--radius-full); height: 34px; border: none; gap: 6px; display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
+
+/* ── Layout ── */
+.desktop-app { display: flex; height: 100vh; overflow: hidden; }
+.main-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.content-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+.content-scroll::-webkit-scrollbar { width: 4px; }
+.content-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+
+/* ── KPI Cards ── */
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-desk {
+  padding: 18px; background: var(--bg-card);
+  border: 1px solid var(--border-glass); border-radius: 16px;
+  transition: var(--transition-base); cursor: pointer; position: relative; overflow: hidden;
+}
+.kpi-desk:hover { border-color: var(--border-cyan); transform: translateY(-2px); box-shadow: var(--shadow-cyan); }
+.kpi-desk::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gradient-main); opacity: 0; transition: var(--transition-fast); }
+.kpi-desk:hover::before { opacity: 1; }
+.kd-icon { font-size: 22px; margin-bottom: 10px; }
+.kd-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; }
+.kd-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.kd-change { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 3px; }
+.kd-change.pos { color: var(--success); }
+.kd-change.neg { color: var(--danger); }
+
+/* ── Main Grid ── */
+.main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 16px; margin-bottom: 20px; }
+
+.chart-section { padding: 20px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 20px; }
+.cs-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.cs-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+.cs-period { display: flex; gap: 4px; }
+.csp-btn { padding: 5px 12px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: var(--transition-fast); }
+.csp-btn.active { background: var(--cyan-dim); color: var(--cyan); }
+.chart-wrap { height: 260px; position: relative; }
+
+/* ── Right Panel ── */
+.right-panel { display: flex; flex-direction: column; gap: 14px; }
+
+.twin-status-desk {
+  padding: 16px; background: linear-gradient(135deg, rgba(0,245,255,0.06), rgba(138,43,226,0.08));
+  border: 1px solid rgba(0,245,255,0.18); border-radius: 18px;
+}
+.tsd-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tsd-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-main); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 0 12px rgba(0,245,255,0.35); animation: glow-pulse 2s ease-in-out infinite; }
+.tsd-title { font-weight: 700; font-size: 14px; margin-bottom: 1px; }
+.tsd-sub { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 4px; }
+.tsd-sub::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--success); animation: pulse 1.5s infinite; }
+.twin-canvas-wrap { height: 140px; position: relative; }
+
+.ai-insights-panel { padding: 16px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 18px; }
+.aip-title { font-weight: 700; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.aip-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: var(--transition-fast); border: 1px solid transparent; }
+.aip-item:hover { border-color: rgba(0,245,255,0.12); }
+.aip-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.aip-text { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+.aip-text strong { color: var(--text-primary); }
+
+/* ── Bottom Grid ── */
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+.section-card { padding: 18px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 18px; }
+.sc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sc-title { font-weight: 700; font-size: 14px; }
+.sc-link { font-size: 11px; color: var(--cyan); cursor: pointer; }
+
+/* Transactions */
+.txn-list-desk { display: flex; flex-direction: column; gap: 8px; }
+.txn-desk { display: flex; align-items: center; gap: 10px; }
+.txn-desk-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.txn-desk-name { font-size: 13px; font-weight: 600; flex: 1; }
+.txn-desk-date { font-size: 11px; color: var(--text-muted); }
+.txn-desk-amount { font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+
+/* Goals Mini */
+.goal-mini { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.gm-icon { font-size: 18px; flex-shrink: 0; }
+.gm-info { flex: 1; }
+.gm-name { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+.gm-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.gm-fill { height: 100%; border-radius: 4px; }
+.gm-pct { font-size: 11px; font-family: var(--font-mono); font-weight: 700; }
+
+/* Investment Mini */
+.inv-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.inv-row:last-child { border-bottom: none; }
+.inv-name { font-size: 12px; font-weight: 600; }
+.inv-val { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.inv-ret { font-size: 11px; font-weight: 600; }
+
+
+
+
+
+
+.inv-scroll::-webkit-scrollbar{display:none;}
+
+
+
+
+/* Portfolio Hero */
+.portfolio-hero{margin:16px 22px;padding:22px;background:linear-gradient(135deg,rgba(0,255,157,0.08),rgba(14,23,38,0.8));border:1px solid rgba(0,255,157,0.2);border-radius:24px;}
+.ph-label{font-size:12px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}
+.ph-value{font-family:var(--font-display);font-size:36px;font-weight:700;color:#fff;margin-bottom:4px;}
+.ph-returns{display:flex;gap:16px;margin-bottom:14px;}
+.ph-ret-item{text-align:left;}
+.ph-ret-val{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--success);}
+.ph-ret-label{font-size:10px;color:var(--text-secondary);}
+.donut-wrap{height:160px;position:relative;}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.dc-val{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--success);}
+.dc-label{font-size:10px;color:var(--text-secondary);}
+
+/* Legend */
+.alloc-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.al-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);}
+.al-dot{width:8px;height:8px;border-radius:50%;}
+
+/* Fund List */
+.funds-section{padding:0 22px;margin-bottom:16px;}
+
+.fs-title{font-family:var(--font-display);font-size:16px;font-weight:700;}
+.filter-tabs{display:flex;gap:4px;}
+.ft{padding:5px 12px;border-radius:var(--radius-full);font-size:11px;font-weight:600;cursor:pointer;border:none;background:rgba(255,255,255,0.05);color:var(--text-muted);transition:var(--transition-fast);}
+.ft.active{background:var(--cyan-dim);color:var(--cyan);}
+
+.fund-item{display:flex;align-items:center;gap:12px;padding:14px;background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:18px;margin-bottom:8px;cursor:pointer;transition:var(--transition-fast);}
+.fund-item:hover{border-color:rgba(255,255,255,0.12);}
+.fund-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.fund-info{flex:1;}
+.fund-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.fund-meta{font-size:11px;color:var(--text-secondary);}
+.fund-right{text-align:right;}
+.fund-value{font-family:var(--font-mono);font-size:14px;font-weight:700;margin-bottom:2px;}
+.fund-return{font-size:12px;font-weight:700;}
+.fund-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:4px;overflow:hidden;}
+.fund-bar-fill{height:100%;border-radius:3px;}
+
+/* AI Insights */
+.ai-invest-card{margin:0 22px;padding:16px;background:linear-gradient(135deg,rgba(0,245,255,0.05),rgba(138,43,226,0.08));border:1px solid rgba(0,245,255,0.15);border-radius:24px;}
+.aic-title{font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:10px;}
+.aic-item{display:flex;gap:8px;font-size:12px;color:var(--text-secondary);margin-bottom:8px;line-height:1.5;}
+
+
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);}
+.nav-item.active{color:var(--cyan);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;}.nl{font-size:10px;font-weight:500;}
+
+</style>
+</head>
+<body>
+<div class="desktop-app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-gem">🧬</div>
+      <div>
+        <div class="logo-text gradient-text">TwinFi AI</div>
+        <div class="logo-sub">Living Financial Twin</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item-desk"><span class="ni">🏠</span> Dashboard</a>
+      <a href="dna.html" class="nav-item-desk"><span class="ni">🧬</span> Financial DNA</a>
+      <a href="twin.html" class="nav-item-desk"><span class="ni">👤</span> Living Twin</a>
+      <a href="simulator.html" class="nav-item-desk"><span class="ni">🌌</span> Future Simulator</a>
+      <a href="network.html" class="nav-item-desk"><span class="ni">🕸️</span> Twin Network</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Analytics</div>
+      <a href="economy.html" class="nav-item-desk"><span class="ni">🌐</span> Economy Sim</a>
+      <a href="investments.html" class="nav-item-desk active"><span class="ni">📊</span> Investments</a>
+      <a href="coach.html" class="nav-item-desk"><span class="ni">🤖</span> AI Coach</a>
+      <a href="fraud.html" class="nav-item-desk"><span class="ni">🛡️</span> Fraud Intel</a>
+      <a href="#" class="nav-item-desk"><span class="ni">📋</span> Reports</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Account</div>
+      <a href="#" class="nav-item-desk"><span class="ni">⚙️</span> Settings</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-pill-av">A</div>
+        <div>
+          <div class="user-pill-name">Arjun Mehta</div>
+          <div class="user-pill-role">Premium · Mumbai</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Panel -->
+  <div class="main-panel">
+    <!-- Top Navbar -->
+    <div class="top-navbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search transactions, goals, insights..."/>
+      </div>
+      <div class="navbar-right">
+        <div class="nb-btn"><span>🔔</span><div class="notif-badge"></div></div>
+        <div class="nb-btn">🌐</div>
+        <div class="nb-ai" onclick="window.location.href='coach.html'">🤖 Ask AI Twin</div>
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;cursor:pointer;">A</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-scroll">
+
+<div class="page-title" style="font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:20px;">📊 AI Investment Portfolio</div>
+<div class="main-grid" style="grid-template-columns: 1fr 400px;">
+  <div>
+    <div class="section-card" style="margin-bottom:20px;">
+      <div class="pf-header" style="display:flex;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <div style="font-size:12px;color:var(--text-secondary);">Total Portfolio Value</div>
+          <div style="font-family:var(--font-display);font-size:32px;font-weight:700;">₹12.4L</div>
+          <div style="color:var(--success);font-size:14px;font-weight:600;">+₹1.8L (17.2%) All Time</div>
+        </div>
+        <div class="ai-badge" style="background:var(--gradient-main);color:#000;padding:6px 12px;border-radius:20px;font-weight:700;font-size:12px;align-self:flex-start;">🤖 Optimal Allocation</div>
+      </div>
+      <div style="height:300px;position:relative;">
+        <canvas id="portfolioChart"></canvas>
+      </div>
+    </div>
+    
+    <div class="section-card">
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px;">AI Rebalancing Suggestions</div>
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.3);border-radius:12px;">
+        <div style="font-size:20px;">⚖️</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">Equity Overweight Detected</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">Nifty run-up has pushed equity allocation to 72% (Target: 60%). Shift ₹1.2L to Debt/Gold to maintain risk profile.</div>
+        </div>
+        <button style="padding:6px 16px;background:var(--warning);border:none;border-radius:20px;color:#000;font-weight:700;font-size:12px;cursor:pointer;">Rebalance</button>
+      </div>
+    </div>
+  </div>
+  
+  <div>
+    <div class="section-card" style="margin-bottom:20px;">
+      <div style="font-weight:700;font-size:16px;margin-bottom:16px;">Holdings</div>
+      <div class="asset-item" style="display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <div><div style="font-weight:700;font-size:14px;">Parag Parikh Flexi</div><div style="font-size:11px;color:var(--text-secondary);">Equity MF</div></div>
+        <div style="text-align:right;"><div style="font-family:var(--font-mono);font-weight:700;">₹4.8L</div><div style="color:var(--success);font-size:11px;">+28.4%</div></div>
+      </div>
+      <div class="asset-item" style="display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <div><div style="font-weight:700;font-size:14px;">HDFC Index</div><div style="font-size:11px;color:var(--text-secondary);">Large Cap</div></div>
+        <div style="text-align:right;"><div style="font-family:var(--font-mono);font-weight:700;">₹2.4L</div><div style="color:var(--success);font-size:11px;">+18.2%</div></div>
+      </div>
+      <div class="asset-item" style="display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <div><div style="font-weight:700;font-size:14px;">SGB 2026</div><div style="font-size:11px;color:var(--text-secondary);">Gold</div></div>
+        <div style="text-align:right;"><div style="font-family:var(--font-mono);font-weight:700;">₹1.5L</div><div style="color:var(--success);font-size:11px;">+14.8%</div></div>
+      </div>
+      <div class="asset-item" style="display:flex;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <div><div style="font-weight:700;font-size:14px;">SBI FD</div><div style="font-size:11px;color:var(--text-secondary);">Debt</div></div>
+        <div style="text-align:right;"><div style="font-family:var(--font-mono);font-weight:700;">₹3.2L</div><div style="color:var(--success);font-size:11px;">+6.5%</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</div>
+<script>
+
+// Portfolio Counter
+let pv=0,pt=12800000;
+const pEl=document.getElementById('portVal');
+const pT=setInterval(()=>{pv+=180000;if(pv>=pt){pEl.textContent='₹12,80,000';clearInterval(pT);return;}pEl.textContent='₹'+pv.toLocaleString('en-IN');},25);
+
+// Donut Chart
+new Chart(document.getElementById('donutChart').getContext('2d'),{
+  type:'doughnut',
+  data:{
+    labels:['Mutual Funds','Stocks','Gold','FD','Crypto'],
+    datasets:[{data:[48,24,12,10,6],backgroundColor:['#00F5FF','#8A2BE2','#FFB800','#00FF9D','#FF4D6D'],borderWidth:0,hoverOffset:4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}
+});
+
+</script>
+</body>
+</html>

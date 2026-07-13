@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Desktop Future Simulator</title>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg-primary);}
+.desktop-app{display:flex;height:100vh;overflow:hidden;}
+/* Sidebar (shared) */
+.sidebar{width:220px;min-width:220px;background:var(--bg-secondary);border-right:1px solid var(--border-glass);display:flex;flex-direction:column;padding:0;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{display:none;}
+.sidebar-logo{padding:20px;border-bottom:1px solid var(--border-glass);display:flex;align-items:center;gap:10px;}
+.logo-gem{width:32px;height:32px;border-radius:10px;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.logo-text{font-family:var(--font-display);font-size:16px;font-weight:700;}.logo-sub{font-size:9px;color:var(--text-muted);}
+.nav-section{padding:12px 12px 4px;}
+.nav-section-label{font-size:9px;color:var(--text-muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0 8px;margin-bottom:4px;}
+.nav-item-desk{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:var(--transition-fast);text-decoration:none;color:var(--text-secondary);font-size:13px;font-weight:500;margin-bottom:1px;}
+.nav-item-desk:hover{background:rgba(255,255,255,0.04);color:var(--text-primary);}
+.nav-item-desk.active{background:var(--cyan-dim);color:var(--cyan);border:1px solid rgba(0,245,255,0.15);}
+.nav-item-desk .ni{font-size:15px;flex-shrink:0;}
+.sidebar-footer{margin-top:auto;padding:16px;border-top:1px solid var(--border-glass);}
+.user-pill{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.03);}
+.user-pill-av{width:32px;height:32px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#000;}
+.user-pill-name{font-size:13px;font-weight:600;}.user-pill-role{font-size:10px;color:var(--text-muted);}
+.main-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.top-navbar{height:56px;background:rgba(5,8,22,0.7);backdrop-filter:blur(24px);border-bottom:1px solid var(--border-glass);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;}
+.search-wrap{flex:1;max-width:360px;position:relative;}
+.search-wrap input{width:100%;padding:8px 14px 8px 36px;background:rgba(255,255,255,0.05);border:1px solid var(--border-glass);border-radius:var(--radius-full);color:var(--text-primary);font-size:13px;outline:none;}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;}
+.navbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.nb-btn{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid var(--border-glass);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
+.nb-ai{background:var(--gradient-main);color:#000;font-size:13px;font-weight:700;padding:0 14px;border-radius:var(--radius-full);height:34px;border:none;display:flex;align-items:center;cursor:pointer;gap:6px;}
+.content-scroll{flex:1;overflow-y:auto;padding:20px;}
+
+/* Simulator Grid */
+.sim-intro{padding:20px;background:linear-gradient(135deg,rgba(138,43,226,0.1),rgba(0,245,255,0.06));border:1px solid rgba(138,43,226,0.2);border-radius:20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;}
+.si-icon{font-size:40px;}
+.si-title{font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:4px;}
+.si-desc{font-size:13px;color:var(--text-secondary);}
+
+.universes-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+.uni-card{padding:20px;border-radius:20px;border:1px solid;transition:var(--transition-base);cursor:pointer;}
+.uni-card:hover{transform:translateY(-4px);}
+.ua{background:linear-gradient(135deg,rgba(0,245,255,0.08),rgba(14,23,38,0.8));border-color:rgba(0,245,255,0.3);}
+.ub{background:linear-gradient(135deg,rgba(138,43,226,0.1),rgba(14,23,38,0.8));border-color:rgba(138,43,226,0.3);}
+.uc{background:linear-gradient(135deg,rgba(0,255,157,0.07),rgba(14,23,38,0.8));border-color:rgba(0,255,157,0.3);}
+.ud{background:linear-gradient(135deg,rgba(255,184,0,0.07),rgba(14,23,38,0.8));border-color:rgba(255,184,0,0.3);}
+.uni-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:var(--radius-full);font-size:10px;font-weight:700;margin-bottom:10px;}
+.uni-title{font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:4px;}
+.uni-sub{font-size:12px;color:var(--text-secondary);margin-bottom:14px;}
+.uni-metrics{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.um-row{display:flex;justify-content:space-between;font-size:12px;}
+.um-label{color:var(--text-secondary);}
+.um-val{font-family:var(--font-mono);font-weight:700;}
+.uni-chart-wrap{height:100px;position:relative;margin-bottom:10px;}
+.uni-prob{font-size:11px;color:var(--text-secondary);text-align:right;}
+
+/* Comparison Chart */
+.compare-card{padding:20px;background:var(--bg-card);border:1px solid var(--border-glass);border-radius:20px;}
+.cmp-title{font-weight:700;font-size:16px;margin-bottom:16px;}
+.compare-chart-wrap{height:250px;position:relative;}
+</style>
+</head>
+<body>
+<div class="desktop-app">
+  <div class="sidebar">
+    <div class="sidebar-logo"><div class="logo-gem">🧬</div><div><div class="logo-text gradient-text">TwinFi AI</div><div class="logo-sub">Living Financial Twin</div></div></div>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item-desk"><span class="ni">🏠</span> Dashboard</a>
+      <a href="dna.html" class="nav-item-desk"><span class="ni">🧬</span> Financial DNA</a>
+      <a href="twin.html" class="nav-item-desk"><span class="ni">👤</span> Living Twin</a>
+      <a href="simulator.html" class="nav-item-desk active"><span class="ni">🌌</span> Future Simulator</a>
+      <a href="network.html" class="nav-item-desk"><span class="ni">🕸️</span> Twin Network</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Analytics</div>
+      <a href="economy.html" class="nav-item-desk"><span class="ni">🌐</span> Economy Sim</a>
+      <a href="investments.html" class="nav-item-desk"><span class="ni">📊</span> Investments</a>
+      <a href="coach.html" class="nav-item-desk"><span class="ni">🤖</span> AI Coach</a>
+      <a href="fraud.html" class="nav-item-desk"><span class="ni">🛡️</span> Fraud Intel</a>
+    </div>
+    <div class="sidebar-footer"><div class="user-pill"><div class="user-pill-av">A</div><div><div class="user-pill-name">Arjun Mehta</div><div class="user-pill-role">Premium</div></div></div></div>
+  </div>
+  <div class="main-panel">
+    <div class="top-navbar">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" placeholder="Search..."/></div>
+      <div class="navbar-right">
+        <div class="nb-btn">🔔</div>
+        <div class="nb-ai">🤖 Ask AI Twin</div>
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;">A</div>
+      </div>
+    </div>
+    <div class="content-scroll">
+
+      <div class="sim-intro animate-fade-in">
+        <div class="si-icon">🌌</div>
+        <div>
+          <div class="si-title">Parallel Universe Financial Explorer</div>
+          <div class="si-desc">Simultaneously compare 4 alternate financial futures based on your real behavioral data, risk profile, and AI twin intelligence.</div>
+        </div>
+      </div>
+
+      <!-- 4 Universe Cards -->
+      <div class="universes-grid">
+        <div class="uni-card ua animate-fade-in">
+          <div class="uni-badge" style="background:rgba(0,245,255,0.12);color:var(--cyan)">Universe A</div>
+          <div class="uni-title">🏠 Buy a House</div>
+          <div class="uni-sub">Down payment: ₹15L · EMI: ₹28K/mo</div>
+          <div class="uni-metrics">
+            <div class="um-row"><span class="um-label">Net Worth (5Y)</span><span class="um-val" style="color:var(--success)">₹92L</span></div>
+            <div class="um-row"><span class="um-label">EMI Impact</span><span class="um-val" style="color:var(--warning)">₹28K/mo</span></div>
+            <div class="um-row"><span class="um-label">Retire Age</span><span class="um-val" style="color:var(--cyan)">58 yrs</span></div>
+            <div class="um-row"><span class="um-label">Health Score</span><span class="um-val" style="color:var(--success)">81/100</span></div>
+          </div>
+          <div class="uni-chart-wrap"><canvas id="chartUA"></canvas></div>
+          <div class="uni-prob">🤖 87% probability · Recommended</div>
+        </div>
+        <div class="uni-card ub animate-fade-in delay-100">
+          <div class="uni-badge" style="background:rgba(138,43,226,0.12);color:#C77DFF">Universe B</div>
+          <div class="uni-title">🎓 Higher Education</div>
+          <div class="uni-sub">MBA: ₹22L · ROI: 3.2× in 5Y</div>
+          <div class="uni-metrics">
+            <div class="um-row"><span class="um-label">Net Worth (5Y)</span><span class="um-val" style="color:var(--success)">₹1.2Cr</span></div>
+            <div class="um-row"><span class="um-label">EMI Impact</span><span class="um-val" style="color:var(--warning)">₹15K/mo</span></div>
+            <div class="um-row"><span class="um-label">Retire Age</span><span class="um-val" style="color:var(--cyan)">54 yrs</span></div>
+            <div class="um-row"><span class="um-label">Health Score</span><span class="um-val" style="color:var(--success)">88/100</span></div>
+          </div>
+          <div class="uni-chart-wrap"><canvas id="chartUB"></canvas></div>
+          <div class="uni-prob">🤖 72% probability</div>
+        </div>
+        <div class="uni-card uc animate-fade-in delay-200">
+          <div class="uni-badge" style="background:rgba(0,255,157,0.12);color:var(--success)">Universe C</div>
+          <div class="uni-title">📈 Boost SIP ₹25K</div>
+          <div class="uni-sub">Compounding: 12% CAGR</div>
+          <div class="uni-metrics">
+            <div class="um-row"><span class="um-label">Net Worth (5Y)</span><span class="um-val" style="color:var(--success)">₹2.1Cr</span></div>
+            <div class="um-row"><span class="um-label">EMI Impact</span><span class="um-val" style="color:var(--success)">₹0 (None)</span></div>
+            <div class="um-row"><span class="um-label">Retire Age</span><span class="um-val" style="color:var(--cyan)">50 yrs</span></div>
+            <div class="um-row"><span class="um-label">Health Score</span><span class="um-val" style="color:var(--success)">96/100</span></div>
+          </div>
+          <div class="uni-chart-wrap"><canvas id="chartUC"></canvas></div>
+          <div class="uni-prob">🤖 94% probability · Best Return</div>
+        </div>
+        <div class="uni-card ud animate-fade-in delay-300">
+          <div class="uni-badge" style="background:rgba(255,184,0,0.12);color:var(--warning)">Universe D</div>
+          <div class="uni-title">🚀 Start Business</div>
+          <div class="uni-sub">Capital: ₹8L · Break-even: 18mo</div>
+          <div class="uni-metrics">
+            <div class="um-row"><span class="um-label">Net Worth (5Y)</span><span class="um-val" style="color:var(--warning)">₹68L</span></div>
+            <div class="um-row"><span class="um-label">Risk Level</span><span class="um-val" style="color:var(--danger)">High</span></div>
+            <div class="um-row"><span class="um-label">Retire Age</span><span class="um-val" style="color:var(--cyan)">52 yrs</span></div>
+            <div class="um-row"><span class="um-label">Health Score</span><span class="um-val" style="color:var(--warning)">74/100</span></div>
+          </div>
+          <div class="uni-chart-wrap"><canvas id="chartUD"></canvas></div>
+          <div class="uni-prob">🤖 61% probability · High Risk</div>
+        </div>
+      </div>
+
+      <!-- Comparison Chart -->
+      <div class="compare-card animate-fade-in delay-400">
+        <div class="cmp-title">📊 Side-by-Side Net Worth Projection (10 Years)</div>
+        <div class="compare-chart-wrap"><canvas id="compareChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function miniChart(id,color,data){
+  new Chart(document.getElementById(id).getContext('2d'),{
+    type:'line',
+    data:{labels:['Now','2Y','4Y','5Y'],datasets:[{data,borderColor:color,backgroundColor:color.replace('1)','0.08)'),fill:true,tension:0.4,pointRadius:2,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}
+  });
+}
+miniChart('chartUA','rgba(0,245,255,1)',[1620000,3200000,5800000,9200000]);
+miniChart('chartUB','rgba(138,43,226,1)',[1620000,1200000,6500000,12000000]);
+miniChart('chartUC','rgba(0,255,157,1)',[1620000,3800000,11000000,21000000]);
+miniChart('chartUD','rgba(255,184,0,1)',[1620000,900000,3400000,6800000]);
+
+// Compare Chart
+new Chart(document.getElementById('compareChart').getContext('2d'),{
+  type:'line',
+  data:{
+    labels:['Now','1Y','2Y','3Y','4Y','5Y','6Y','7Y','8Y','9Y','10Y'],
+    datasets:[
+      {label:'🏠 Buy House',data:[1.62,2.1,3.2,5.1,6.8,9.2,11.5,14.8,17.2,19.8,22.0].map(v=>v*1e6),borderColor:'#00F5FF',backgroundColor:'rgba(0,245,255,0.04)',fill:true,tension:0.4,pointRadius:3,borderWidth:2},
+      {label:'🎓 Education',data:[1.62,1.2,2.8,6.5,9.2,12,15.8,19.2,24,29,34].map(v=>v*1e6/10),borderColor:'#8A2BE2',backgroundColor:'rgba(138,43,226,0.04)',fill:true,tension:0.4,pointRadius:3,borderWidth:2},
+      {label:'📈 Boost SIP',data:[1.62,2.4,3.8,6.2,11,21,30,40,52,66,80].map(v=>v*1e6/10),borderColor:'#00FF9D',backgroundColor:'rgba(0,255,157,0.04)',fill:true,tension:0.4,pointRadius:3,borderWidth:2},
+      {label:'🚀 Business',data:[1.62,0.8,1.9,3.4,5.2,6.8,9.5,13,16,19,22].map(v=>v*1e6),borderColor:'#FFB800',backgroundColor:'rgba(255,184,0,0.03)',fill:true,tension:0.4,pointRadius:3,borderWidth:2,borderDash:[6,3]},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#AAB4C5',boxWidth:12,font:{size:12}}}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#AAB4C5'}},
+      y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#AAB4C5',callback:v=>'₹'+Math.round(v/100000)/10+'L'}}
+    }
+  }
+});
+</script>
+</body>
+</html>

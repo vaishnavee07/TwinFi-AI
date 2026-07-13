@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Desktop Dashboard</title>
+<meta name="description" content="TwinFi AI Premium Executive Dashboard"/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../assets/js/api-client.js"></script>
+<style>
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg-primary); }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px; min-width: 220px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-glass);
+  display: flex; flex-direction: column;
+  padding: 0;
+  overflow-y: auto; z-index: 10;
+}
+.sidebar::-webkit-scrollbar { display: none; }
+
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border-glass);
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-gem {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: var(--gradient-main);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; box-shadow: 0 0 12px rgba(0,245,255,0.3);
+}
+.logo-text { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+.logo-sub { font-size: 9px; color: var(--text-muted); }
+
+.nav-section { padding: 12px 12px 4px; }
+.nav-section-label { font-size: 9px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 4px; }
+
+.nav-item-desk {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 10px;
+  cursor: pointer; transition: var(--transition-fast);
+  text-decoration: none; color: var(--text-secondary);
+  font-size: 13px; font-weight: 500; margin-bottom: 1px;
+}
+.nav-item-desk:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+.nav-item-desk.active { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(0,245,255,0.15); }
+.nav-item-desk .ni { font-size: 15px; flex-shrink: 0; }
+
+.sidebar-footer {
+  margin-top: auto; padding: 16px;
+  border-top: 1px solid var(--border-glass);
+}
+.user-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px; border-radius: 12px;
+  background: rgba(255,255,255,0.03); cursor: pointer;
+}
+.user-pill-av { width: 32px; height: 32px; border-radius: 50%; background: var(--gradient-main); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #000; }
+.user-pill-name { font-size: 13px; font-weight: 600; }
+.user-pill-role { font-size: 10px; color: var(--text-muted); }
+
+/* ── Top Navbar ── */
+.top-navbar {
+  height: 56px;
+  background: rgba(5,8,22,0.7);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border-glass);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 12px; flex-shrink: 0;
+}
+.search-wrap {
+  flex: 1; max-width: 360px; position: relative;
+}
+.search-wrap input {
+  width: 100%; padding: 8px 14px 8px 36px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  color: var(--text-primary); font-size: 13px; outline: none;
+  transition: var(--transition-fast);
+}
+.search-wrap input:focus { border-color: var(--cyan); }
+.search-wrap .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; }
+.navbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.nb-btn { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; transition: var(--transition-fast); position: relative; }
+.nb-btn:hover { border-color: var(--border-cyan); }
+.nb-btn .notif-badge { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); border: 2px solid var(--bg-primary); }
+.nb-ai { background: var(--gradient-main); color: #000; font-size: 13px; font-weight: 700; width: auto; padding: 0 14px; border-radius: var(--radius-full); height: 34px; border: none; gap: 6px; display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
+
+/* ── Layout ── */
+.desktop-app { display: flex; height: 100vh; overflow: hidden; }
+.main-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.content-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+.content-scroll::-webkit-scrollbar { width: 4px; }
+.content-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+
+/* ── KPI Cards ── */
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-desk {
+  padding: 18px; background: var(--bg-card);
+  border: 1px solid var(--border-glass); border-radius: 16px;
+  transition: var(--transition-base); cursor: pointer; position: relative; overflow: hidden;
+}
+.kpi-desk:hover { border-color: var(--border-cyan); transform: translateY(-2px); box-shadow: var(--shadow-cyan); }
+.kpi-desk::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gradient-main); opacity: 0; transition: var(--transition-fast); }
+.kpi-desk:hover::before { opacity: 1; }
+.kd-icon { font-size: 22px; margin-bottom: 10px; }
+.kd-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; }
+.kd-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.kd-change { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 3px; }
+.kd-change.pos { color: var(--success); }
+.kd-change.neg { color: var(--danger); }
+
+/* ── Main Grid ── */
+.main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 16px; margin-bottom: 20px; }
+
+.chart-section { padding: 20px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 20px; }
+.cs-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.cs-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+.cs-period { display: flex; gap: 4px; }
+.csp-btn { padding: 5px 12px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: var(--transition-fast); }
+.csp-btn.active { background: var(--cyan-dim); color: var(--cyan); }
+.chart-wrap { height: 260px; position: relative; }
+
+/* ── Right Panel ── */
+.right-panel { display: flex; flex-direction: column; gap: 14px; }
+
+.twin-status-desk {
+  padding: 16px; background: linear-gradient(135deg, rgba(0,245,255,0.06), rgba(138,43,226,0.08));
+  border: 1px solid rgba(0,245,255,0.18); border-radius: 18px;
+}
+.tsd-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tsd-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-main); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 0 12px rgba(0,245,255,0.35); animation: glow-pulse 2s ease-in-out infinite; }
+.tsd-title { font-weight: 700; font-size: 14px; margin-bottom: 1px; }
+.tsd-sub { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 4px; }
+.tsd-sub::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--success); animation: pulse 1.5s infinite; }
+.twin-canvas-wrap { height: 140px; position: relative; }
+
+.ai-insights-panel { padding: 16px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 18px; }
+.aip-title { font-weight: 700; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.aip-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: var(--transition-fast); border: 1px solid transparent; }
+.aip-item:hover { border-color: rgba(0,245,255,0.12); }
+.aip-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.aip-text { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+.aip-text strong { color: var(--text-primary); }
+
+/* ── Bottom Grid ── */
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+.section-card { padding: 18px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 18px; }
+.sc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sc-title { font-weight: 700; font-size: 14px; }
+.sc-link { font-size: 11px; color: var(--cyan); cursor: pointer; }
+
+/* Transactions */
+.txn-list-desk { display: flex; flex-direction: column; gap: 8px; }
+.txn-desk { display: flex; align-items: center; gap: 10px; }
+.txn-desk-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.txn-desk-name { font-size: 13px; font-weight: 600; flex: 1; }
+.txn-desk-date { font-size: 11px; color: var(--text-muted); }
+.txn-desk-amount { font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+
+/* Goals Mini */
+.goal-mini { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.gm-icon { font-size: 18px; flex-shrink: 0; }
+.gm-info { flex: 1; }
+.gm-name { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+.gm-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.gm-fill { height: 100%; border-radius: 4px; }
+.gm-pct { font-size: 11px; font-family: var(--font-mono); font-weight: 700; }
+
+/* Investment Mini */
+.inv-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.inv-row:last-child { border-bottom: none; }
+.inv-name { font-size: 12px; font-weight: 600; }
+.inv-val { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.inv-ret { font-size: 11px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="desktop-app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-gem">🧬</div>
+      <div>
+        <div class="logo-text gradient-text">TwinFi AI</div>
+        <div class="logo-sub">Living Financial Twin</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item-desk active"><span class="ni">🏠</span> Dashboard</a>
+      <a href="dna.html" class="nav-item-desk"><span class="ni">🧬</span> Financial DNA</a>
+      <a href="twin.html" class="nav-item-desk"><span class="ni">👤</span> Living Twin</a>
+      <a href="simulator.html" class="nav-item-desk"><span class="ni">🌌</span> Future Simulator</a>
+      <a href="network.html" class="nav-item-desk"><span class="ni">🕸️</span> Twin Network</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Analytics</div>
+      <a href="economy.html" class="nav-item-desk"><span class="ni">🌐</span> Economy Sim</a>
+      <a href="investments.html" class="nav-item-desk"><span class="ni">📊</span> Investments</a>
+      <a href="coach.html" class="nav-item-desk"><span class="ni">🤖</span> AI Coach</a>
+      <a href="fraud.html" class="nav-item-desk"><span class="ni">🛡️</span> Fraud Intel</a>
+      <a href="#" class="nav-item-desk"><span class="ni">📋</span> Reports</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Account</div>
+      <a href="#" class="nav-item-desk"><span class="ni">⚙️</span> Settings</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-pill-av">A</div>
+        <div>
+          <div class="user-pill-name">Arjun Mehta</div>
+          <div class="user-pill-role">Premium · Mumbai</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Panel -->
+  <div class="main-panel">
+    <!-- Top Navbar -->
+    <div class="top-navbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search transactions, goals, insights..."/>
+      </div>
+      <div class="navbar-right">
+        <div class="nb-btn"><span>🔔</span><div class="notif-badge"></div></div>
+        <div class="nb-btn">🌐</div>
+        <div class="nb-ai" onclick="window.location.href='coach.html'">🤖 Ask AI Twin</div>
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;cursor:pointer;">A</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-scroll">
+      <!-- KPI Row -->
+      <div class="kpi-row">
+        <div class="kpi-desk animate-fade-in">
+          <div class="kd-icon">🧬</div>
+          <div class="kd-label">Health Score</div>
+          <div class="kd-value" style="color:var(--success)" id="kpi1">87</div>
+          <div class="kd-change pos">↑ +3 this month</div>
+        </div>
+        <div class="kpi-desk animate-fade-in delay-100">
+          <div class="kd-icon">💰</div>
+          <div class="kd-label">Net Worth</div>
+          <div class="kd-value gradient-text" id="kpi2">₹16.2L</div>
+          <div class="kd-change pos">↑ +8.3%</div>
+        </div>
+        <div class="kpi-desk animate-fade-in delay-200">
+          <div class="kd-icon">⭐</div>
+          <div class="kd-label">Credit Score</div>
+          <div class="kd-value" style="color:var(--cyan)" id="kpi3">782</div>
+          <div class="kd-change pos">↑ +12 pts</div>
+        </div>
+        <div class="kpi-desk animate-fade-in delay-300">
+          <div class="kd-icon">💾</div>
+          <div class="kd-label">Savings Rate</div>
+          <div class="kd-value" style="color:#C77DFF">31%</div>
+          <div class="kd-change pos">↑ Above avg</div>
+        </div>
+        <div class="kpi-desk animate-fade-in delay-400">
+          <div class="kd-icon">📈</div>
+          <div class="kd-label">Investment XIRR</div>
+          <div class="kd-value" style="color:var(--success)">22.4%</div>
+          <div class="kd-change pos">↑ vs 14.2% Nifty</div>
+        </div>
+      </div>
+
+      <!-- Main Grid -->
+      <div class="main-grid">
+        <!-- Cash Flow Chart -->
+        <div class="chart-section animate-fade-in delay-200">
+          <div class="cs-header">
+            <div class="cs-title">📊 AI Cash Flow Intelligence</div>
+            <div class="cs-period">
+              <button class="csp-btn">1M</button>
+              <button class="csp-btn active">3M</button>
+              <button class="csp-btn">6M</button>
+              <button class="csp-btn">1Y</button>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="cashFlowChart"></canvas>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:12px;font-size:11px;">
+            <div style="display:flex;align-items:center;gap:5px;"><div style="width:10px;height:3px;background:#00FF9D;border-radius:2px;"></div><span style="color:var(--text-secondary)">Income</span></div>
+            <div style="display:flex;align-items:center;gap:5px;"><div style="width:10px;height:3px;background:#FF4D6D;border-radius:2px;"></div><span style="color:var(--text-secondary)">Expenses</span></div>
+            <div style="display:flex;align-items:center;gap:5px;"><div style="width:10px;height:3px;background:#00F5FF;border-radius:2px;border-top:1px dashed;"></div><span style="color:var(--text-secondary)">AI Prediction</span></div>
+          </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+          <!-- Twin Status -->
+          <div class="twin-status-desk animate-fade-in delay-300">
+            <div class="tsd-header">
+              <div class="tsd-avatar">🧬</div>
+              <div>
+                <div class="tsd-title">Living Financial Twin</div>
+                <div class="tsd-sub">Active — 93% Confident</div>
+              </div>
+            </div>
+            <div class="twin-canvas-wrap">
+              <canvas id="twinMiniCanvas" width="288" height="130"></canvas>
+            </div>
+          </div>
+
+          <!-- AI Insights -->
+          <div class="ai-insights-panel animate-fade-in delay-400">
+            <div class="aip-title">🧠 AI Next Best Actions</div>
+            <div class="aip-item">
+              <div class="aip-icon">⚡</div>
+              <div class="aip-text"><strong>Increase SIP by ₹8K</strong> — Unlocks ₹1.9Cr extra at retirement</div>
+            </div>
+            <div class="aip-item">
+              <div class="aip-icon">🌊</div>
+              <div class="aip-text"><strong>Plug ₹22K leakage</strong> — OTT subscriptions overlap detected</div>
+            </div>
+            <div class="aip-item">
+              <div class="aip-icon">🏡</div>
+              <div class="aip-text"><strong>Loan rate reset</strong> in 90 days — Hedge with fixed rate now</div>
+            </div>
+            <div class="aip-item">
+              <div class="aip-icon">💡</div>
+              <div class="aip-text"><strong>ELSS ₹1.5L</strong> — Save ₹46,800 in taxes before March</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Grid -->
+      <div class="bottom-grid">
+        <!-- Transactions -->
+        <div class="section-card animate-fade-in">
+          <div class="sc-header"><div class="sc-title">Recent Transactions</div><div class="sc-link">View all</div></div>
+          <div class="txn-list-desk">
+            <div class="txn-desk">
+              <div class="txn-desk-icon" style="background:rgba(0,245,255,0.1)">🍕</div>
+              <div><div class="txn-desk-name">Swiggy</div><div class="txn-desk-date">Today, 12:34</div></div>
+              <div class="txn-desk-amount" style="color:var(--danger)">-₹348</div>
+            </div>
+            <div class="txn-desk">
+              <div class="txn-desk-icon" style="background:rgba(0,255,157,0.1)">💼</div>
+              <div><div class="txn-desk-name">Salary Credit</div><div class="txn-desk-date">Jul 1</div></div>
+              <div class="txn-desk-amount" style="color:var(--success)">+₹1.2L</div>
+            </div>
+            <div class="txn-desk">
+              <div class="txn-desk-icon" style="background:rgba(255,77,109,0.1)">🏠</div>
+              <div><div class="txn-desk-name">Home Loan EMI</div><div class="txn-desk-date">Jul 5</div></div>
+              <div class="txn-desk-amount" style="color:var(--danger)">-₹24.5K</div>
+            </div>
+            <div class="txn-desk">
+              <div class="txn-desk-icon" style="background:rgba(138,43,226,0.1)">📈</div>
+              <div><div class="txn-desk-name">SIP – Parag Flexi</div><div class="txn-desk-date">Jul 3</div></div>
+              <div class="txn-desk-amount" style="color:var(--danger)">-₹10K</div>
+            </div>
+            <div class="txn-desk">
+              <div class="txn-desk-icon" style="background:rgba(255,184,0,0.1)">⛽</div>
+              <div><div class="txn-desk-name">HP Petrol</div><div class="txn-desk-date">Jul 8</div></div>
+              <div class="txn-desk-amount" style="color:var(--danger)">-₹2,100</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Goal Progress -->
+        <div class="section-card animate-fade-in delay-200">
+          <div class="sc-header"><div class="sc-title">Goal Progress</div><a href="../mobile/goals.html" class="sc-link">Manage</a></div>
+          <div class="goal-mini">
+            <div class="gm-icon">🛡️</div>
+            <div class="gm-info"><div class="gm-name">Emergency Fund</div><div class="gm-bar"><div class="gm-fill" style="width:80%;background:linear-gradient(90deg,#00FF9D,#00D4AA)"></div></div></div>
+            <div class="gm-pct" style="color:var(--success)">80%</div>
+          </div>
+          <div class="goal-mini">
+            <div class="gm-icon">✈️</div>
+            <div class="gm-info"><div class="gm-name">Europe Vacation</div><div class="gm-bar"><div class="gm-fill" style="width:60%;background:var(--gradient-main)"></div></div></div>
+            <div class="gm-pct" style="color:var(--cyan)">60%</div>
+          </div>
+          <div class="goal-mini">
+            <div class="gm-icon">🏠</div>
+            <div class="gm-info"><div class="gm-name">House Down Payment</div><div class="gm-bar"><div class="gm-fill" style="width:25%;background:linear-gradient(90deg,#FFB800,#FF8C00)"></div></div></div>
+            <div class="gm-pct" style="color:var(--warning)">25%</div>
+          </div>
+          <div class="goal-mini">
+            <div class="gm-icon">🌴</div>
+            <div class="gm-info"><div class="gm-name">Early Retirement</div><div class="gm-bar"><div class="gm-fill" style="width:10%;background:linear-gradient(90deg,#8A2BE2,#C77DFF)"></div></div></div>
+            <div class="gm-pct" style="color:#C77DFF">10%</div>
+          </div>
+        </div>
+
+        <!-- Investment Performance -->
+        <div class="section-card animate-fade-in delay-400">
+          <div class="sc-header"><div class="sc-title">Investment Performance</div><a href="investments.html" class="sc-link">Details</a></div>
+          <div class="inv-row">
+            <div><div class="inv-name">Parag Parikh Flexicap</div><div style="font-size:10px;color:var(--text-muted)">Mutual Fund</div></div>
+            <div style="text-align:right;"><div class="inv-val">₹4.8L</div><div class="inv-ret" style="color:var(--success)">+28.4%</div></div>
+          </div>
+          <div class="inv-row">
+            <div><div class="inv-name">HDFC Nifty 50 Index</div><div style="font-size:10px;color:var(--text-muted)">Index Fund</div></div>
+            <div style="text-align:right;"><div class="inv-val">₹2.4L</div><div class="inv-ret" style="color:var(--success)">+18.2%</div></div>
+          </div>
+          <div class="inv-row">
+            <div><div class="inv-name">Sovereign Gold Bond</div><div style="font-size:10px;color:var(--text-muted)">Gold</div></div>
+            <div style="text-align:right;"><div class="inv-val">₹1.5L</div><div class="inv-ret" style="color:var(--success)">+14.8%</div></div>
+          </div>
+          <div class="inv-row">
+            <div><div class="inv-name">Bitcoin & Ethereum</div><div style="font-size:10px;color:var(--text-muted)">Crypto</div></div>
+            <div style="text-align:right;"><div class="inv-val">₹80K</div><div class="inv-ret" style="color:var(--danger)">-8.4%</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Cash Flow Chart ── */
+new Chart(document.getElementById('cashFlowChart').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    datasets: [
+      { label: 'Income', data: [120000,135000,120000,120000,125000,130000,120000,140000,120000], borderColor: '#00FF9D', backgroundColor: 'rgba(0,255,157,0.06)', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#00FF9D', borderWidth: 2.5 },
+      { label: 'Expenses', data: [78000,94000,76000,64000,80000,72000,75000,88000,70000], borderColor: '#FF4D6D', backgroundColor: 'rgba(255,77,109,0.05)', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#FF4D6D', borderWidth: 2 },
+      { label: 'AI Prediction', data: [null,null,null,120000,122000,128000,125000,138000,120000], borderColor: '#00F5FF', borderDash: [6,4], backgroundColor: 'transparent', fill: false, tension: 0.4, pointRadius: 3, borderWidth: 1.5, pointBackgroundColor: '#00F5FF' },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#111827', titleColor: '#fff', bodyColor: '#AAB4C5', borderColor: 'rgba(0,245,255,0.2)', borderWidth: 1 } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#AAB4C5', font: { size: 11 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#AAB4C5', font: { size: 11 }, callback: v => '₹'+v/1000+'K' } }
+    }
+  }
+});
+
+/* ── Mini Twin Canvas ── */
+const tc = document.getElementById('twinMiniCanvas').getContext('2d');
+let f = 0;
+function drawMiniTwin() {
+  tc.clearRect(0,0,288,130);
+  const t = f * 0.02;
+  const grd = tc.createRadialGradient(144,65,5,144,65,60);
+  grd.addColorStop(0,'rgba(0,245,255,0.12)'); grd.addColorStop(1,'transparent');
+  tc.fillStyle = grd; tc.fillRect(0,0,288,130);
+
+  // Scanning lines
+  for(let i=0;i<7;i++){
+    const y=(i*20+f)%130;
+    tc.beginPath();tc.moveTo(0,y);tc.lineTo(288,y);
+    tc.strokeStyle=`rgba(0,245,255,${0.025})`;tc.lineWidth=1;tc.stroke();
+  }
+
+  // Simplified silhouette
+  tc.beginPath();tc.arc(144,28,16,0,Math.PI*2);
+  const hg=tc.createRadialGradient(144,28,2,144,28,16);
+  hg.addColorStop(0,'rgba(0,245,255,0.25)');hg.addColorStop(1,'rgba(0,245,255,0.04)');
+  tc.fillStyle=hg;tc.fill();
+  tc.strokeStyle=`rgba(0,245,255,${0.5+0.3*Math.sin(t)})`;tc.lineWidth=1.2;tc.stroke();
+
+  // Body
+  tc.beginPath();tc.moveTo(124,44);tc.bezierCurveTo(116,56,114,80,116,100);tc.lineTo(126,100);tc.lineTo(130,120);tc.lineTo(144,105);tc.lineTo(158,120);tc.lineTo(162,100);tc.lineTo(172,100);tc.bezierCurveTo(174,80,172,56,164,44);tc.closePath();
+  const bg2=tc.createLinearGradient(124,44,164,120);
+  bg2.addColorStop(0,'rgba(0,245,255,0.12)');bg2.addColorStop(1,'rgba(138,43,226,0.06)');
+  tc.fillStyle=bg2;tc.fill();
+  tc.strokeStyle=`rgba(0,245,255,${0.35+0.15*Math.sin(t*1.3)})`;tc.lineWidth=1.2;tc.stroke();
+
+  // Arms
+  tc.beginPath();tc.moveTo(124,54);tc.bezierCurveTo(106,64,100,88,104,102);
+  tc.moveTo(164,54);tc.bezierCurveTo(182,64,188,88,184,102);
+  tc.strokeStyle=`rgba(0,245,255,${0.25+0.12*Math.sin(t)})`;tc.lineWidth=1.2;tc.stroke();
+
+  // Nodes
+  [[144,28],[144,68],[128,75],[160,75],[144,95]].forEach(([nx,ny],i)=>{
+    tc.beginPath();tc.arc(nx,ny,2.5+Math.sin(t*2+i),0,Math.PI*2);
+    tc.fillStyle=i%2===0?'rgba(0,245,255,0.9)':'rgba(138,43,226,0.9)';tc.fill();
+  });
+
+  // Floating metric labels
+  tc.font='bold 10px Inter';tc.fillStyle=`rgba(0,245,255,${0.7+0.2*Math.sin(t)})`;
+  tc.textAlign='center';tc.fillText('₹16.2L',50,45);
+  tc.fillStyle=`rgba(0,255,157,${0.7+0.2*Math.sin(t+1)})`;tc.fillText('87 Score',238,45);
+  tc.fillStyle=`rgba(138,43,226,0.8)`;tc.fillText('93% AI',50,110);
+  tc.fillStyle=`rgba(255,184,0,0.8)`;tc.fillText('Risk: Med',238,110);
+
+  f++; requestAnimationFrame(drawMiniTwin);
+}
+drawMiniTwin();
+
+// Dynamic API Integration
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const state = await window.twinfiAPI.getTwinState();
+    if (state) {
+      const kpi1 = document.getElementById('kpi1');
+      if (kpi1) kpi1.textContent = state.health_score;
+      
+      const kpi2 = document.getElementById('kpi2');
+      if (kpi2) kpi2.textContent = `₹${(state.net_worth/100000).toFixed(1)}L`;
+      
+      const kpiVals = document.querySelectorAll('.kd-value');
+      if (kpiVals.length >= 4) {
+        kpiVals[3].textContent = `${Math.round(state.savings_rate_pct)}%`;
+      }
+    }
+    
+    // Check if user is logged in
+    const userProfile = localStorage.getItem('twinfi_user_profile');
+    if (userProfile) {
+      try {
+        const user = JSON.parse(userProfile);
+        const nameEl = document.querySelector('.user-pill-name');
+        if (nameEl) nameEl.textContent = `${user.first_name} ${user.last_name}`;
+        const avEl = document.querySelector('.user-pill-av');
+        if (avEl) avEl.textContent = user.first_name[0];
+      } catch(e){}
+    }
+  } catch (err) {
+    console.error('Failed to load Twin API:', err);
+  }
+});
+</script>
+</body>
+</html>
