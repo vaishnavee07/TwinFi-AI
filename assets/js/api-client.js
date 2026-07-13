@@ -8,7 +8,7 @@
 // Hackathon Demo Mode Flag
 const DEMO_MODE = true;
 
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = 'https://twinfi-ai-backend.onrender.com/api/v1';
 
 // Token storage key
 const TOKEN_KEY = 'twinfi_access_token';
@@ -27,7 +27,7 @@ class TwinFiAPIClient {
       return;
     }
     try {
-      const res = await fetch('http://localhost:8000/health', { method: 'GET', mode: 'cors' });
+      const res = await fetch('https://twinfi-ai-backend.onrender.com/health', { method: 'GET', mode: 'cors' });
       if (res.ok) {
         this.useMock = false;
       } else {

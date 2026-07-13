@@ -257,16 +257,12 @@ SECRET_KEY=
 uvicorn app.main:app --reload
 ```
 
-Backend:
-
-```
-http://localhost:8000
-```
+# Backend will be available at https://twinfi-ai-backend.onrender.com
 
 Swagger API:
 
 ```
-http://localhost:8000/docs
+https://twinfi-ai-backend.onrender.com/docs
 ```
 
 ---
