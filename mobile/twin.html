@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Living Financial Twin</title>
+<meta name="description" content="Your Living Financial Twin – a real-time AI replica of your complete financial universe. Track net worth, predictions, and health score."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../assets/js/api-client.js"></script>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{padding:40px 20px;}
+.phone{
+  width:390px;height:844px;background:var(--bg-primary);
+  border-radius:50px;
+  box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 80px rgba(0,245,255,0.1);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;
+}
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;}
+
+.twin-scroll{flex:1;overflow-y:auto;}
+.twin-scroll::-webkit-scrollbar{display:none;}
+
+.twin-header{
+  padding:12px 22px;position:sticky;top:0;z-index:10;
+  background:rgba(5,8,22,0.85);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.page-title{font-family:var(--font-display);font-size:17px;font-weight:700;}
+
+/* Twin Visualization */
+.twin-viz{
+  margin:0;padding:20px;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  height:340px;
+  overflow:hidden;
+}
+.twin-bg-glow{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(0,245,255,0.08) 0%,rgba(138,43,226,0.06) 50%,transparent 70%);
+  animation:pulse 3s ease-in-out infinite;
+}
+canvas#twinCanvas{position:relative;z-index:2;}
+
+/* Metric Pills around twin */
+.metric-pill{
+  position:absolute;z-index:3;
+  padding:6px 12px;
+  background:rgba(14,23,38,0.85);backdrop-filter:blur(10px);
+  border:1px solid var(--border-glass);border-radius:var(--radius-full);
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;white-space:nowrap;
+  animation:float 3s ease-in-out infinite;
+}
+.mp-1{top:30px;left:20px;border-color:rgba(0,255,157,0.3);animation-delay:0s;}
+.mp-2{top:30px;right:20px;border-color:rgba(0,245,255,0.3);animation-delay:0.5s;}
+.mp-3{top:50%;left:10px;transform:translateY(-50%);border-color:rgba(138,43,226,0.3);animation-delay:1s;}
+.mp-4{top:50%;right:10px;transform:translateY(-50%);border-color:rgba(255,184,0,0.3);animation-delay:1.5s;}
+.mp-5{bottom:30px;left:20px;border-color:rgba(255,77,109,0.3);animation-delay:2s;}
+.mp-6{bottom:30px;right:20px;border-color:rgba(0,245,255,0.3);animation-delay:0.8s;}
+
+/* Twin Status */
+.twin-status{
+  margin:0 22px 16px;padding:16px 20px;
+  background:linear-gradient(135deg,rgba(0,245,255,0.08),rgba(138,43,226,0.1));
+  border:1px solid rgba(0,245,255,0.2);border-radius:24px;
+  display:flex;align-items:center;gap:16px;
+}
+.twin-avatar-ring{
+  position:relative;width:60px;height:60px;flex-shrink:0;
+}
+.twin-avatar-ring svg{position:absolute;inset:0;animation:spin-slow 6s linear infinite;}
+.twin-avatar-inner{
+  position:absolute;inset:8px;border-radius:50%;background:var(--gradient-main);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 0 16px rgba(0,245,255,0.4);
+}
+.twin-status-info{flex:1;}
+.twin-name{font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:3px;}
+.twin-learning{font-size:12px;color:var(--text-secondary);margin-bottom:8px;}
+.twin-progress-row{display:flex;align-items:center;gap:8px;}
+.twin-prog{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;}
+.twin-prog-fill{height:100%;background:var(--gradient-main);border-radius:4px;width:87%;box-shadow:0 0 6px var(--cyan-glow);}
+.twin-prog-val{font-size:11px;font-weight:700;color:var(--cyan);}
+
+/* Stats Grid */
+.twin-metrics{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  margin:0 22px 16px;
+}
+.tm-card{
+  padding:14px;background:rgba(14,23,38,0.7);border:1px solid var(--border-glass);border-radius:18px;
+  transition:var(--transition-base);cursor:pointer;
+}
+.tm-card:hover{border-color:var(--border-cyan);}
+.tm-icon{font-size:18px;margin-bottom:6px;}
+.tm-label{font-size:10px;color:var(--text-secondary);font-weight:500;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;}
+.tm-value{font-family:var(--font-display);font-size:18px;font-weight:700;}
+.tm-sub{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+
+/* Timeline */
+.twin-timeline{
+  margin:0 22px 16px;padding:16px;
+  background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:24px;
+}
+.tl-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.tl-item{display:flex;gap:12px;margin-bottom:14px;position:relative;}
+.tl-item::before{content:'';position:absolute;left:14px;top:24px;bottom:-14px;width:1px;background:var(--border-glass);}
+.tl-item:last-child::before{display:none;}
+.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.tl-content{flex:1;}
+.tl-event{font-size:13px;font-weight:600;margin-bottom:2px;}
+.tl-time{font-size:11px;color:var(--text-secondary);}
+.tl-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--radius-full);font-size:10px;font-weight:600;margin-top:4px;}
+
+/* AI Confidence */
+.confidence-card{
+  margin:0 22px;padding:16px;
+  background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:24px;
+}
+.conf-title{font-size:14px;font-weight:700;margin-bottom:12px;}
+.conf-meter{
+  height:12px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden;margin-bottom:6px;
+}
+.conf-fill{height:100%;border-radius:6px;background:var(--gradient-main);box-shadow:0 0 8px var(--cyan-glow);width:93%;}
+.conf-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);}
+
+/* Bottom Nav */
+.bottom-nav{
+  position:absolute;bottom:0;left:0;right:0;height:76px;
+  background:rgba(5,8,22,0.9);backdrop-filter:blur(24px);
+  border-top:1px solid var(--border-glass);
+  display:flex;align-items:center;justify-content:space-around;padding:0 10px;
+}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);transition:var(--transition-fast);}
+.nav-item.active{color:var(--cyan);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;} .nl{font-size:10px;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+<div class="phone">
+  <div class="status-bar"><span style="font-family:var(--font-mono)">9:41</span><div style="font-size:11px">▌▌▌ WiFi 🔋</div></div>
+  <div class="twin-scroll">
+    <div class="twin-header">
+      <div class="back-btn" onclick="history.back()">←</div>
+      <div class="page-title">👤 Living Financial Twin</div>
+      <div class="back-btn">ℹ️</div>
+    </div>
+
+    <!-- Holographic Twin Visualization -->
+    <div class="twin-viz">
+      <div class="twin-bg-glow"></div>
+
+      <!-- Floating Metric Pills -->
+      <div class="metric-pill mp-1"><span style="color:var(--success)">●</span> Health: 87</div>
+      <div class="metric-pill mp-2"><span style="color:var(--cyan)">●</span> ₹16.2L NW</div>
+      <div class="metric-pill mp-3"><span style="color:#C77DFF">●</span> Risk: Low</div>
+      <div class="metric-pill mp-4"><span style="color:var(--warning)">●</span> Goals: 4</div>
+      <div class="metric-pill mp-5"><span style="color:var(--danger)">●</span> Loans: 2</div>
+      <div class="metric-pill mp-6"><span style="color:var(--cyan)">●</span> AI: Live</div>
+
+      <canvas id="twinCanvas" width="200" height="280"></canvas>
+    </div>
+
+    <!-- Twin Status Bar -->
+    <div class="twin-status animate-fade-in">
+      <div class="twin-avatar-ring">
+        <svg viewBox="0 0 60 60" fill="none">
+          <circle cx="30" cy="30" r="26" stroke="url(#tg)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <defs><linearGradient id="tg" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#00F5FF"/><stop offset="1" stop-color="#8A2BE2"/></linearGradient></defs>
+        </svg>
+        <div class="twin-avatar-inner">🧬</div>
+      </div>
+      <div class="twin-status-info">
+        <div class="twin-name">Arjun's Financial Twin</div>
+        <div class="twin-learning">Learned from 847 financial events</div>
+        <div class="twin-progress-row">
+          <div class="twin-prog"><div class="twin-prog-fill"></div></div>
+          <div class="twin-prog-val">87% confidence</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="twin-metrics animate-fade-in delay-200">
+      <div class="tm-card">
+        <div class="tm-icon">💰</div>
+        <div class="tm-label">Current NW</div>
+        <div class="tm-value" style="color:var(--success)">₹16.2L</div>
+        <div class="tm-sub">↑ 8.3% this month</div>
+      </div>
+      <div class="tm-card">
+        <div class="tm-icon">🔮</div>
+        <div class="tm-label">Predicted NW</div>
+        <div class="tm-value" style="color:var(--cyan)">₹48.5L</div>
+        <div class="tm-sub">5-year projection</div>
+      </div>
+      <div class="tm-card">
+        <div class="tm-icon">🎯</div>
+        <div class="tm-label">Goal Progress</div>
+        <div class="tm-value" style="color:#C77DFF">64%</div>
+        <div class="tm-sub">4 active goals</div>
+      </div>
+      <div class="tm-card">
+        <div class="tm-icon">⚡</div>
+        <div class="tm-label">Risk Level</div>
+        <div class="tm-value" style="color:var(--warning)">Medium</div>
+        <div class="tm-sub">Score: 55/100</div>
+      </div>
+      <div class="tm-card">
+        <div class="tm-icon">🏦</div>
+        <div class="tm-label">Total Assets</div>
+        <div class="tm-value" style="color:var(--success)">₹34.8L</div>
+        <div class="tm-sub">Across 6 categories</div>
+      </div>
+      <div class="tm-card">
+        <div class="tm-icon">📉</div>
+        <div class="tm-label">Liabilities</div>
+        <div class="tm-value" style="color:var(--danger)">₹18.6L</div>
+        <div class="tm-sub">Debt/Asset: 53%</div>
+      </div>
+    </div>
+
+    <!-- Twin Timeline -->
+    <div class="twin-timeline animate-fade-in delay-300">
+      <div class="tl-title">🕐 Twin Learning Events</div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:rgba(0,255,157,0.15);color:var(--success)">📊</div>
+        <div class="tl-content">
+          <div class="tl-event">SIP increased to ₹15,000</div>
+          <div class="tl-time">Today · Detected by Twin</div>
+          <div class="tl-badge" style="background:rgba(0,255,157,0.1);color:var(--success)">+Positive Signal</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:rgba(255,184,0,0.15);color:var(--warning)">⚠️</div>
+        <div class="tl-content">
+          <div class="tl-event">Lifestyle inflation detected</div>
+          <div class="tl-time">3 days ago · Dining spend ↑42%</div>
+          <div class="tl-badge" style="background:rgba(255,184,0,0.1);color:var(--warning)">Review Suggested</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:rgba(0,245,255,0.15);color:var(--cyan)">🎯</div>
+        <div class="tl-content">
+          <div class="tl-event">Emergency fund goal completed!</div>
+          <div class="tl-time">Jul 1, 2026</div>
+          <div class="tl-badge" style="background:rgba(0,245,255,0.1);color:var(--cyan)">Milestone Achieved</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Confidence Meter -->
+    <div class="confidence-card animate-fade-in delay-400">
+      <div class="conf-title">🧠 Twin Confidence Score</div>
+      <div class="conf-meter"><div class="conf-fill"></div></div>
+      <div class="conf-labels"><span>0%</span><span style="color:var(--cyan);font-weight:700">93% Accurate</span><span>100%</span></div>
+    </div>
+
+    <div style="height:90px;"></div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item"><div class="ni">🏠</div><div class="nl">Home</div></a>
+    <a href="dna.html" class="nav-item"><div class="ni">🧬</div><div class="nl">DNA</div></a>
+    <div class="nav-center">👤</div>
+    <a href="investments.html" class="nav-item"><div class="ni">📊</div><div class="nl">Invest</div></a>
+    <a href="profile.html" class="nav-item active"><div class="ni">👤</div><div class="nl">Profile</div></a>
+  </div>
+</div>
+</div>
+
+<script>
+/* ── Holographic Human Silhouette Canvas ── */
+const canvas = document.getElementById('twinCanvas');
+const ctx = canvas.getContext('2d');
+let frame = 0;
+
+function drawTwin() {
+  ctx.clearRect(0, 0, 200, 280);
+
+  const t = frame * 0.02;
+
+  // Glow aura
+  const grd = ctx.createRadialGradient(100, 140, 10, 100, 140, 90);
+  grd.addColorStop(0, 'rgba(0,245,255,0.15)');
+  grd.addColorStop(0.5, 'rgba(138,43,226,0.08)');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, 200, 280);
+
+  // Scanning lines
+  for (let i = 0; i < 14; i++) {
+    const y = (i * 20 + frame) % 280;
+    ctx.beginPath();
+    ctx.moveTo(0, y); ctx.lineTo(200, y);
+    ctx.strokeStyle = `rgba(0,245,255,${0.03 + 0.02 * Math.sin(t + i)})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Human silhouette - head
+  ctx.beginPath();
+  ctx.arc(100, 42, 22, 0, Math.PI * 2);
+  const headGrad = ctx.createRadialGradient(100, 42, 4, 100, 42, 22);
+  headGrad.addColorStop(0, 'rgba(0,245,255,0.3)');
+  headGrad.addColorStop(1, 'rgba(0,245,255,0.06)');
+  ctx.fillStyle = headGrad;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(0,245,255,${0.5 + 0.3 * Math.sin(t)})`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Body
+  ctx.beginPath();
+  ctx.moveTo(70, 64);
+  ctx.bezierCurveTo(60, 80, 56, 100, 58, 155);
+  ctx.lineTo(70, 155);
+  ctx.lineTo(72, 200);
+  ctx.lineTo(88, 200);
+  ctx.lineTo(100, 165);
+  ctx.lineTo(112, 200);
+  ctx.lineTo(128, 200);
+  ctx.lineTo(130, 155);
+  ctx.lineTo(142, 155);
+  ctx.bezierCurveTo(144, 100, 140, 80, 130, 64);
+  ctx.closePath();
+  const bodyGrad = ctx.createLinearGradient(70, 64, 130, 200);
+  bodyGrad.addColorStop(0, 'rgba(0,245,255,0.15)');
+  bodyGrad.addColorStop(0.5, 'rgba(138,43,226,0.1)');
+  bodyGrad.addColorStop(1, 'rgba(0,245,255,0.05)');
+  ctx.fillStyle = bodyGrad;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(0,245,255,${0.4 + 0.2 * Math.sin(t * 1.3)})`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Circuit overlay on body
+  const circuits = [[80,90,120,90],[80,110,120,110],[90,90,90,130],[110,90,110,130]];
+  circuits.forEach(([x1,y1,x2,y2]) => {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    ctx.strokeStyle = `rgba(0,245,255,${0.2 + 0.1 * Math.sin(t * 2)})`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  });
+
+  // Pulsing nodes
+  const nodes = [[100,42],[100,90],[80,100],[120,100],[100,140],[80,165],[120,165]];
+  nodes.forEach(([nx,ny], i) => {
+    const r = 3 + 1.5 * Math.sin(t * 2 + i);
+    ctx.beginPath();
+    ctx.arc(nx, ny, r, 0, Math.PI * 2);
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(0,245,255,0.8)' : 'rgba(138,43,226,0.8)';
+    ctx.fill();
+    // Glow ring
+    ctx.beginPath();
+    ctx.arc(nx, ny, r + 3 + 2 * Math.sin(t + i), 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(0,245,255,${0.2 * Math.abs(Math.sin(t + i))})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Arms
+  ctx.beginPath();
+  ctx.moveTo(70, 80); ctx.bezierCurveTo(45, 100, 38, 130, 44, 155);
+  ctx.moveTo(130, 80); ctx.bezierCurveTo(155, 100, 162, 130, 156, 155);
+  ctx.strokeStyle = `rgba(0,245,255,${0.3 + 0.15 * Math.sin(t)})`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  frame++;
+  requestAnimationFrame(drawTwin);
+}
+drawTwin();
+
+// Dynamic API Integration
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const state = await window.twinfiAPI.getTwinState();
+    if (state) {
+      // Metric Pills
+      const mp1 = document.querySelector('.mp-1');
+      if (mp1) mp1.innerHTML = `<span style="color:var(--success)">●</span> Health: ${state.health_score}`;
+      
+      const mp2 = document.querySelector('.mp-2');
+      if (mp2) mp2.innerHTML = `<span style="color:var(--cyan)">●</span> ₹${(state.net_worth/100000).toFixed(1)}L NW`;
+      
+      // Progress Bar Confidence
+      const progVal = document.querySelector('.twin-prog-val');
+      if (progVal) progVal.textContent = `${state.health_score}% confidence`;
+
+      // Main KPI Cards
+      const values = document.querySelectorAll('.tm-value');
+      if (values.length >= 6) {
+        values[0].textContent = `₹${(state.net_worth/100000).toFixed(1)}L`; // Current NW
+        values[1].textContent = `₹${(state.predictions.net_worth_5y/100000).toFixed(1)}L`; // Predicted NW
+        values[2].textContent = `${Math.round(state.savings_rate_pct)}%`; // Savings Rate -> Goal Progress analog
+        values[3].textContent = state.health_score > 80 ? 'Low' : state.health_score > 50 ? 'Medium' : 'High'; // Risk Level
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load Twin API:', err);
+  }
+});
+</script>
+</body>
+</html>

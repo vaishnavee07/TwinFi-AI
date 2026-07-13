@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI - Living Twin</title>
+<meta name="description" content="TwinFi AI Premium Executive Dashboard"/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../assets/js/api-client.js"></script>
+<style>
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg-primary); }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px; min-width: 220px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-glass);
+  display: flex; flex-direction: column;
+  padding: 0;
+  overflow-y: auto; z-index: 10;
+}
+.sidebar::-webkit-scrollbar { display: none; }
+
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border-glass);
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-gem {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: var(--gradient-main);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; box-shadow: 0 0 12px rgba(0,245,255,0.3);
+}
+.logo-text { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+.logo-sub { font-size: 9px; color: var(--text-muted); }
+
+.nav-section { padding: 12px 12px 4px; }
+.nav-section-label { font-size: 9px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 4px; }
+
+.nav-item-desk {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 10px;
+  cursor: pointer; transition: var(--transition-fast);
+  text-decoration: none; color: var(--text-secondary);
+  font-size: 13px; font-weight: 500; margin-bottom: 1px;
+}
+.nav-item-desk:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+.nav-item-desk.active { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(0,245,255,0.15); }
+.nav-item-desk .ni { font-size: 15px; flex-shrink: 0; }
+
+.sidebar-footer {
+  margin-top: auto; padding: 16px;
+  border-top: 1px solid var(--border-glass);
+}
+.user-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px; border-radius: 12px;
+  background: rgba(255,255,255,0.03); cursor: pointer;
+}
+.user-pill-av { width: 32px; height: 32px; border-radius: 50%; background: var(--gradient-main); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #000; }
+.user-pill-name { font-size: 13px; font-weight: 600; }
+.user-pill-role { font-size: 10px; color: var(--text-muted); }
+
+/* ── Top Navbar ── */
+.top-navbar {
+  height: 56px;
+  background: rgba(5,8,22,0.7);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border-glass);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 12px; flex-shrink: 0;
+}
+.search-wrap {
+  flex: 1; max-width: 360px; position: relative;
+}
+.search-wrap input {
+  width: 100%; padding: 8px 14px 8px 36px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  color: var(--text-primary); font-size: 13px; outline: none;
+  transition: var(--transition-fast);
+}
+.search-wrap input:focus { border-color: var(--cyan); }
+.search-wrap .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; }
+.navbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.nb-btn { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; transition: var(--transition-fast); position: relative; }
+.nb-btn:hover { border-color: var(--border-cyan); }
+.nb-btn .notif-badge { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); border: 2px solid var(--bg-primary); }
+.nb-ai { background: var(--gradient-main); color: #000; font-size: 13px; font-weight: 700; width: auto; padding: 0 14px; border-radius: var(--radius-full); height: 34px; border: none; gap: 6px; display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
+
+/* ── Layout ── */
+.desktop-app { display: flex; height: 100vh; overflow: hidden; }
+.main-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.content-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+.content-scroll::-webkit-scrollbar { width: 4px; }
+.content-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+
+/* ── KPI Cards ── */
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-desk {
+  padding: 18px; background: var(--bg-card);
+  border: 1px solid var(--border-glass); border-radius: 16px;
+  transition: var(--transition-base); cursor: pointer; position: relative; overflow: hidden;
+}
+.kpi-desk:hover { border-color: var(--border-cyan); transform: translateY(-2px); box-shadow: var(--shadow-cyan); }
+.kpi-desk::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gradient-main); opacity: 0; transition: var(--transition-fast); }
+.kpi-desk:hover::before { opacity: 1; }
+.kd-icon { font-size: 22px; margin-bottom: 10px; }
+.kd-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; }
+.kd-value { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.kd-change { font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 3px; }
+.kd-change.pos { color: var(--success); }
+.kd-change.neg { color: var(--danger); }
+
+/* ── Main Grid ── */
+.main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 16px; margin-bottom: 20px; }
+
+.chart-section { padding: 20px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 20px; }
+.cs-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.cs-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+.cs-period { display: flex; gap: 4px; }
+.csp-btn { padding: 5px 12px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: var(--transition-fast); }
+.csp-btn.active { background: var(--cyan-dim); color: var(--cyan); }
+.chart-wrap { height: 260px; position: relative; }
+
+/* ── Right Panel ── */
+.right-panel { display: flex; flex-direction: column; gap: 14px; }
+
+.twin-status-desk {
+  padding: 16px; background: linear-gradient(135deg, rgba(0,245,255,0.06), rgba(138,43,226,0.08));
+  border: 1px solid rgba(0,245,255,0.18); border-radius: 18px;
+}
+.tsd-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tsd-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-main); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 0 12px rgba(0,245,255,0.35); animation: glow-pulse 2s ease-in-out infinite; }
+.tsd-title { font-weight: 700; font-size: 14px; margin-bottom: 1px; }
+.tsd-sub { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 4px; }
+.tsd-sub::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--success); animation: pulse 1.5s infinite; }
+.twin-canvas-wrap { height: 140px; position: relative; }
+
+.ai-insights-panel { padding: 16px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 18px; }
+.aip-title { font-weight: 700; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.aip-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: var(--transition-fast); border: 1px solid transparent; }
+.aip-item:hover { border-color: rgba(0,245,255,0.12); }
+.aip-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.aip-text { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+.aip-text strong { color: var(--text-primary); }
+
+/* ── Bottom Grid ── */
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+.section-card { padding: 18px; background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 18px; }
+.sc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.sc-title { font-weight: 700; font-size: 14px; }
+.sc-link { font-size: 11px; color: var(--cyan); cursor: pointer; }
+
+/* Transactions */
+.txn-list-desk { display: flex; flex-direction: column; gap: 8px; }
+.txn-desk { display: flex; align-items: center; gap: 10px; }
+.txn-desk-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.txn-desk-name { font-size: 13px; font-weight: 600; flex: 1; }
+.txn-desk-date { font-size: 11px; color: var(--text-muted); }
+.txn-desk-amount { font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+
+/* Goals Mini */
+.goal-mini { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.gm-icon { font-size: 18px; flex-shrink: 0; }
+.gm-info { flex: 1; }
+.gm-name { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+.gm-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.gm-fill { height: 100%; border-radius: 4px; }
+.gm-pct { font-size: 11px; font-family: var(--font-mono); font-weight: 700; }
+
+/* Investment Mini */
+.inv-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.inv-row:last-child { border-bottom: none; }
+.inv-name { font-size: 12px; font-weight: 600; }
+.inv-val { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.inv-ret { font-size: 11px; font-weight: 600; }
+
+
+
+
+
+
+
+
+.twin-scroll::-webkit-scrollbar{display:none;}
+
+
+
+
+
+/* Twin Visualization */
+.twin-viz{
+  margin:0;padding:20px;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  height:340px;
+  overflow:hidden;
+}
+.twin-bg-glow{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(0,245,255,0.08) 0%,rgba(138,43,226,0.06) 50%,transparent 70%);
+  animation:pulse 3s ease-in-out infinite;
+}
+canvas#twinCanvas{position:relative;z-index:2;}
+
+/* Metric Pills around twin */
+.metric-pill{
+  position:absolute;z-index:3;
+  padding:6px 12px;
+  background:rgba(14,23,38,0.85);backdrop-filter:blur(10px);
+  border:1px solid var(--border-glass);border-radius:var(--radius-full);
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;white-space:nowrap;
+  animation:float 3s ease-in-out infinite;
+}
+.mp-1{top:30px;left:20px;border-color:rgba(0,255,157,0.3);animation-delay:0s;}
+.mp-2{top:30px;right:20px;border-color:rgba(0,245,255,0.3);animation-delay:0.5s;}
+.mp-3{top:50%;left:10px;transform:translateY(-50%);border-color:rgba(138,43,226,0.3);animation-delay:1s;}
+.mp-4{top:50%;right:10px;transform:translateY(-50%);border-color:rgba(255,184,0,0.3);animation-delay:1.5s;}
+.mp-5{bottom:30px;left:20px;border-color:rgba(255,77,109,0.3);animation-delay:2s;}
+.mp-6{bottom:30px;right:20px;border-color:rgba(0,245,255,0.3);animation-delay:0.8s;}
+
+/* Twin Status */
+.twin-status{
+  margin:0 22px 16px;padding:16px 20px;
+  background:linear-gradient(135deg,rgba(0,245,255,0.08),rgba(138,43,226,0.1));
+  border:1px solid rgba(0,245,255,0.2);border-radius:24px;
+  display:flex;align-items:center;gap:16px;
+}
+.twin-avatar-ring{
+  position:relative;width:60px;height:60px;flex-shrink:0;
+}
+.twin-avatar-ring svg{position:absolute;inset:0;animation:spin-slow 6s linear infinite;}
+.twin-avatar-inner{
+  position:absolute;inset:8px;border-radius:50%;background:var(--gradient-main);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 0 16px rgba(0,245,255,0.4);
+}
+.twin-status-info{flex:1;}
+.twin-name{font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:3px;}
+.twin-learning{font-size:12px;color:var(--text-secondary);margin-bottom:8px;}
+.twin-progress-row{display:flex;align-items:center;gap:8px;}
+.twin-prog{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;}
+.twin-prog-fill{height:100%;background:var(--gradient-main);border-radius:4px;width:87%;box-shadow:0 0 6px var(--cyan-glow);}
+.twin-prog-val{font-size:11px;font-weight:700;color:var(--cyan);}
+
+/* Stats Grid */
+.twin-metrics{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  margin:0 22px 16px;
+}
+.tm-card{
+  padding:14px;background:rgba(14,23,38,0.7);border:1px solid var(--border-glass);border-radius:18px;
+  transition:var(--transition-base);cursor:pointer;
+}
+.tm-card:hover{border-color:var(--border-cyan);}
+.tm-icon{font-size:18px;margin-bottom:6px;}
+.tm-label{font-size:10px;color:var(--text-secondary);font-weight:500;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;}
+.tm-value{font-family:var(--font-display);font-size:18px;font-weight:700;}
+.tm-sub{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+
+/* Timeline */
+.twin-timeline{
+  margin:0 22px 16px;padding:16px;
+  background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:24px;
+}
+.tl-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.tl-item{display:flex;gap:12px;margin-bottom:14px;position:relative;}
+.tl-item::before{content:'';position:absolute;left:14px;top:24px;bottom:-14px;width:1px;background:var(--border-glass);}
+.tl-item:last-child::before{display:none;}
+.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.tl-content{flex:1;}
+.tl-event{font-size:13px;font-weight:600;margin-bottom:2px;}
+.tl-time{font-size:11px;color:var(--text-secondary);}
+.tl-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--radius-full);font-size:10px;font-weight:600;margin-top:4px;}
+
+/* AI Confidence */
+.confidence-card{
+  margin:0 22px;padding:16px;
+  background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:24px;
+}
+.conf-title{font-size:14px;font-weight:700;margin-bottom:12px;}
+.conf-meter{
+  height:12px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden;margin-bottom:6px;
+}
+.conf-fill{height:100%;border-radius:6px;background:var(--gradient-main);box-shadow:0 0 8px var(--cyan-glow);width:93%;}
+.conf-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);}
+
+/* Bottom Nav */
+
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);transition:var(--transition-fast);}
+.nav-item.active{color:var(--cyan);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;} .nl{font-size:10px;font-weight:500;}
+
+</style>
+</head>
+<body>
+<div class="desktop-app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-gem">🧬</div>
+      <div>
+        <div class="logo-text gradient-text">TwinFi AI</div>
+        <div class="logo-sub">Living Financial Twin</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item-desk"><span class="ni">🏠</span> Dashboard</a>
+      <a href="dna.html" class="nav-item-desk"><span class="ni">🧬</span> Financial DNA</a>
+      <a href="twin.html" class="nav-item-desk active"><span class="ni">👤</span> Living Twin</a>
+      <a href="simulator.html" class="nav-item-desk"><span class="ni">🌌</span> Future Simulator</a>
+      <a href="network.html" class="nav-item-desk"><span class="ni">🕸️</span> Twin Network</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Analytics</div>
+      <a href="economy.html" class="nav-item-desk"><span class="ni">🌐</span> Economy Sim</a>
+      <a href="investments.html" class="nav-item-desk"><span class="ni">📊</span> Investments</a>
+      <a href="coach.html" class="nav-item-desk"><span class="ni">🤖</span> AI Coach</a>
+      <a href="fraud.html" class="nav-item-desk"><span class="ni">🛡️</span> Fraud Intel</a>
+      <a href="#" class="nav-item-desk"><span class="ni">📋</span> Reports</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Account</div>
+      <a href="#" class="nav-item-desk"><span class="ni">⚙️</span> Settings</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-pill-av">A</div>
+        <div>
+          <div class="user-pill-name">Arjun Mehta</div>
+          <div class="user-pill-role">Premium · Mumbai</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Panel -->
+  <div class="main-panel">
+    <!-- Top Navbar -->
+    <div class="top-navbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search transactions, goals, insights..."/>
+      </div>
+      <div class="navbar-right">
+        <div class="nb-btn"><span>🔔</span><div class="notif-badge"></div></div>
+        <div class="nb-btn">🌐</div>
+        <div class="nb-ai" onclick="window.location.href='coach.html'">🤖 Ask AI Twin</div>
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;cursor:pointer;">A</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-scroll">
+
+<div class="page-title" style="font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:20px;">👤 Living Financial Twin</div>
+<div class="main-grid" style="grid-template-columns: 1fr 350px;">
+  <div>
+    <div class="kpi-row" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="kpi-desk"><div class="kd-icon">💰</div><div class="kd-label">Current NW</div><div class="kd-value" style="color:var(--success)">₹16.2L</div></div>
+      <div class="kpi-desk"><div class="kd-icon">🔮</div><div class="kd-label">Predicted NW</div><div class="kd-value" style="color:var(--cyan)">₹48.5L</div></div>
+      <div class="kpi-desk"><div class="kd-icon">🎯</div><div class="kd-label">Goal Progress</div><div class="kd-value" style="color:#C77DFF">64%</div></div>
+      <div class="kpi-desk"><div class="kd-icon">⚡</div><div class="kd-label">Risk Level</div><div class="kd-value" style="color:var(--warning)">Medium</div></div>
+      <div class="kpi-desk"><div class="kd-icon">🏦</div><div class="kd-label">Total Assets</div><div class="kd-value" style="color:var(--success)">₹34.8L</div></div>
+      <div class="kpi-desk"><div class="kd-icon">📉</div><div class="kd-label">Liabilities</div><div class="kd-value" style="color:var(--danger)">₹18.6L</div></div>
+    </div>
+    
+    <div class="section-card" style="margin-bottom:20px;">
+      <div class="sc-header"><div class="sc-title">🕐 Twin Learning Events</div></div>
+      <div class="tl-item"><div class="tl-dot" style="background:rgba(0,255,157,0.15);color:var(--success)">📊</div><div class="tl-content"><div class="tl-event">SIP increased to ₹15,000</div><div class="tl-time">Today · Detected by Twin</div><div class="tl-badge" style="background:rgba(0,255,157,0.1);color:var(--success)">+Positive Signal</div></div></div>
+      <div class="tl-item" style="margin-top:10px;"><div class="tl-dot" style="background:rgba(255,184,0,0.15);color:var(--warning)">⚠️</div><div class="tl-content"><div class="tl-event">Lifestyle inflation detected</div><div class="tl-time">3 days ago · Dining spend ↑42%</div><div class="tl-badge" style="background:rgba(255,184,0,0.1);color:var(--warning)">Review Suggested</div></div></div>
+    </div>
+  </div>
+  
+  <div>
+    <div class="section-card" style="background:linear-gradient(135deg,rgba(0,245,255,0.05),rgba(138,43,226,0.05));text-align:center;padding:30px;">
+      <div class="twin-status">
+        <div class="twin-avatar-ring" style="margin:0 auto 10px;width:80px;height:80px;">
+          <svg viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="26" stroke="url(#tg)" stroke-width="1.5" stroke-dasharray="6 4"/><defs><linearGradient id="tg" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#00F5FF"/><stop offset="1" stop-color="#8A2BE2"/></linearGradient></defs></svg>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px;">🧬</div>
+        </div>
+        <div class="twin-name" style="font-weight:700;font-size:18px;">Arjun's Financial Twin</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Learned from 847 financial events</div>
+        <div style="color:var(--cyan);font-weight:700;font-size:12px;">87% confidence</div>
+      </div>
+      <div style="position:relative;height:300px;margin-top:20px;">
+        <canvas id="twinCanvas" width="250" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</div>
+<script>
+
+/* ── Holographic Human Silhouette Canvas ── */
+const canvas = document.getElementById('twinCanvas');
+const ctx = canvas.getContext('2d');
+let frame = 0;
+
+function drawTwin() {
+  ctx.clearRect(0, 0, 200, 280);
+
+  const t = frame * 0.02;
+
+  // Glow aura
+  const grd = ctx.createRadialGradient(100, 140, 10, 100, 140, 90);
+  grd.addColorStop(0, 'rgba(0,245,255,0.15)');
+  grd.addColorStop(0.5, 'rgba(138,43,226,0.08)');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, 200, 280);
+
+  // Scanning lines
+  for (let i = 0; i < 14; i++) {
+    const y = (i * 20 + frame) % 280;
+    ctx.beginPath();
+    ctx.moveTo(0, y); ctx.lineTo(200, y);
+    ctx.strokeStyle = `rgba(0,245,255,${0.03 + 0.02 * Math.sin(t + i)})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Human silhouette - head
+  ctx.beginPath();
+  ctx.arc(100, 42, 22, 0, Math.PI * 2);
+  const headGrad = ctx.createRadialGradient(100, 42, 4, 100, 42, 22);
+  headGrad.addColorStop(0, 'rgba(0,245,255,0.3)');
+  headGrad.addColorStop(1, 'rgba(0,245,255,0.06)');
+  ctx.fillStyle = headGrad;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(0,245,255,${0.5 + 0.3 * Math.sin(t)})`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Body
+  ctx.beginPath();
+  ctx.moveTo(70, 64);
+  ctx.bezierCurveTo(60, 80, 56, 100, 58, 155);
+  ctx.lineTo(70, 155);
+  ctx.lineTo(72, 200);
+  ctx.lineTo(88, 200);
+  ctx.lineTo(100, 165);
+  ctx.lineTo(112, 200);
+  ctx.lineTo(128, 200);
+  ctx.lineTo(130, 155);
+  ctx.lineTo(142, 155);
+  ctx.bezierCurveTo(144, 100, 140, 80, 130, 64);
+  ctx.closePath();
+  const bodyGrad = ctx.createLinearGradient(70, 64, 130, 200);
+  bodyGrad.addColorStop(0, 'rgba(0,245,255,0.15)');
+  bodyGrad.addColorStop(0.5, 'rgba(138,43,226,0.1)');
+  bodyGrad.addColorStop(1, 'rgba(0,245,255,0.05)');
+  ctx.fillStyle = bodyGrad;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(0,245,255,${0.4 + 0.2 * Math.sin(t * 1.3)})`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Circuit overlay on body
+  const circuits = [[80,90,120,90],[80,110,120,110],[90,90,90,130],[110,90,110,130]];
+  circuits.forEach(([x1,y1,x2,y2]) => {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    ctx.strokeStyle = `rgba(0,245,255,${0.2 + 0.1 * Math.sin(t * 2)})`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  });
+
+  // Pulsing nodes
+  const nodes = [[100,42],[100,90],[80,100],[120,100],[100,140],[80,165],[120,165]];
+  nodes.forEach(([nx,ny], i) => {
+    const r = 3 + 1.5 * Math.sin(t * 2 + i);
+    ctx.beginPath();
+    ctx.arc(nx, ny, r, 0, Math.PI * 2);
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(0,245,255,0.8)' : 'rgba(138,43,226,0.8)';
+    ctx.fill();
+    // Glow ring
+    ctx.beginPath();
+    ctx.arc(nx, ny, r + 3 + 2 * Math.sin(t + i), 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(0,245,255,${0.2 * Math.abs(Math.sin(t + i))})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Arms
+  ctx.beginPath();
+  ctx.moveTo(70, 80); ctx.bezierCurveTo(45, 100, 38, 130, 44, 155);
+  ctx.moveTo(130, 80); ctx.bezierCurveTo(155, 100, 162, 130, 156, 155);
+  ctx.strokeStyle = `rgba(0,245,255,${0.3 + 0.15 * Math.sin(t)})`;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  frame++;
+  requestAnimationFrame(drawTwin);
+}
+drawTwin();
+
+// Dynamic API Integration
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const state = await window.twinfiAPI.getTwinState();
+    if (state) {
+      // Metric Pills
+      const mp1 = document.querySelector('.mp-1');
+      if (mp1) mp1.innerHTML = `<span style="color:var(--success)">●</span> Health: ${state.health_score}`;
+      
+      const mp2 = document.querySelector('.mp-2');
+      if (mp2) mp2.innerHTML = `<span style="color:var(--cyan)">●</span> ₹${(state.net_worth/100000).toFixed(1)}L NW`;
+      
+      // Progress Bar Confidence
+      const progVal = document.querySelector('.twin-prog-val');
+      if (progVal) progVal.textContent = `${state.health_score}% confidence`;
+
+      // Main KPI Cards
+      const values = document.querySelectorAll('.tm-value');
+      if (values.length >= 6) {
+        values[0].textContent = `₹${(state.net_worth/100000).toFixed(1)}L`; // Current NW
+        values[1].textContent = `₹${(state.predictions.net_worth_5y/100000).toFixed(1)}L`; // Predicted NW
+        values[2].textContent = `${Math.round(state.savings_rate_pct)}%`; // Savings Rate -> Goal Progress analog
+        values[3].textContent = state.health_score > 80 ? 'Low' : state.health_score > 50 ? 'Medium' : 'High'; // Risk Level
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load Twin API:', err);
+  }
+});
+
+</script>
+</body>
+</html>
