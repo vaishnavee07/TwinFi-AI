@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Fraud Intelligence</title>
+<meta name="description" content="AI-powered fraud detection that monitors your transactions in real-time using ensemble ML models, velocity checks, and behavioral anomaly detection."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{padding:40px 20px;}
+.phone{width:390px;height:844px;background:var(--bg-primary);border-radius:50px;box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 60px rgba(255,77,109,0.08);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;}
+.fr-scroll{flex:1;overflow-y:auto;}.fr-scroll::-webkit-scrollbar{display:none;}
+.fr-header{padding:12px 22px;position:sticky;top:0;z-index:10;background:rgba(5,8,22,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.page-title{font-family:var(--font-display);font-size:17px;font-weight:700;}
+
+/* Risk Radar */
+.risk-radar{margin:16px 22px;padding:20px;background:linear-gradient(135deg,rgba(255,77,109,0.06),rgba(14,23,38,0.8));border:1px solid rgba(255,77,109,0.2);border-radius:24px;display:flex;align-items:center;gap:16px;}
+.radar-score{text-align:center;flex-shrink:0;}
+.rs-num{font-family:var(--font-display);font-size:48px;font-weight:700;color:var(--success);line-height:1;}
+.rs-label{font-size:12px;color:var(--text-secondary);margin-top:4px;}
+.rs-sublabel{font-size:10px;color:var(--success);font-weight:600;margin-top:2px;}
+.radar-info{flex:1;}
+.ri-title{font-weight:700;font-size:15px;margin-bottom:6px;}
+.ri-desc{font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;}
+.risk-bars{display:flex;flex-direction:column;gap:5px;}
+.rb-item{display:flex;align-items:center;gap:6px;}
+.rb-label{font-size:10px;color:var(--text-secondary);width:60px;flex-shrink:0;}
+.rb-bar{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;}
+.rb-fill{height:100%;border-radius:4px;}
+
+/* Radar Canvas */
+.radar-canvas-card{margin:0 22px 16px;padding:16px;background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:24px;}
+.rcc-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.live-badge{font-size:10px;color:var(--success);background:rgba(0,255,157,0.1);border:1px solid rgba(0,255,157,0.3);padding:2px 8px;border-radius:var(--radius-full);}
+canvas#radarCanvas{display:block;margin:0 auto;}
+
+/* Suspicious Txns */
+.suspicious-list{padding:0 22px;margin-bottom:16px;}
+.sl-title{font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:12px;}
+
+.suspicious-item{
+  display:flex;align-items:flex-start;gap:12px;padding:14px;
+  border:1px solid;border-radius:18px;margin-bottom:10px;cursor:pointer;transition:var(--transition-base);
+}
+.si-high{background:rgba(255,77,109,0.08);border-color:rgba(255,77,109,0.25);}
+.si-medium{background:rgba(255,184,0,0.06);border-color:rgba(255,184,0,0.2);}
+.si-low{background:rgba(0,245,255,0.04);border-color:rgba(0,245,255,0.15);}
+.si-icon{width:40px;height:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.si-info{flex:1;}
+.si-title{font-size:13px;font-weight:700;margin-bottom:2px;}
+.si-desc{font-size:11px;color:var(--text-secondary);margin-bottom:6px;}
+.si-meta{display:flex;gap:8px;}
+.si-badge{padding:2px 8px;border-radius:var(--radius-full);font-size:10px;font-weight:600;}
+.si-risk-high{background:rgba(255,77,109,0.15);color:var(--danger);}
+.si-risk-med{background:rgba(255,184,0,0.15);color:var(--warning);}
+.si-risk-low{background:rgba(0,245,255,0.1);color:var(--cyan);}
+.si-amount{font-family:var(--font-mono);font-size:14px;font-weight:700;flex-shrink:0;}
+
+/* Location Map Placeholder */
+.map-card{margin:0 22px;padding:16px;background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:24px;}
+.mc-title{font-size:14px;font-weight:700;margin-bottom:12px;}
+.map-visual{height:140px;background:linear-gradient(135deg,rgba(0,245,255,0.04),rgba(138,43,226,0.06));border:1px solid var(--border-glass);border-radius:16px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.map-dot{position:absolute;border-radius:50%;}
+.map-you{width:12px;height:12px;background:var(--cyan);box-shadow:0 0 16px var(--cyan);top:60%;left:55%;}
+.map-suspicious{width:10px;height:10px;background:var(--danger);box-shadow:0 0 12px var(--danger);top:25%;left:30%;}
+.map-suspicious::after{content:'';position:absolute;width:24px;height:24px;border:1px solid var(--danger);border-radius:50%;top:-7px;left:-7px;animation:pulse-ring 1.5s ease-out infinite;}
+.map-ok{width:8px;height:8px;background:var(--success);top:70%;left:75%;}
+.map-label{font-size:11px;color:var(--text-secondary);text-align:center;}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:0.8;}100%{transform:scale(2);opacity:0;}}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:76px;background:rgba(5,8,22,0.9);backdrop-filter:blur(24px);border-top:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-around;padding:0 10px;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;}.nl{font-size:10px;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="phone-wrap"><div class="phone">
+  <div class="status-bar"><span style="font-family:var(--font-mono)">9:41</span><div style="font-size:11px">▌▌▌ WiFi 🔋</div></div>
+  <div class="fr-scroll">
+    <div class="fr-header">
+      <div class="back-btn" onclick="history.back()">←</div>
+      <div class="page-title">🛡️ Fraud Intelligence</div>
+      <div class="back-btn">ℹ️</div>
+    </div>
+
+    <div class="risk-radar animate-fade-in">
+      <div class="radar-score">
+        <canvas id="scoreGauge" width="80" height="80"></canvas>
+        <div class="rs-label">Risk Score</div>
+        <div class="rs-sublabel">✅ LOW RISK</div>
+      </div>
+      <div class="radar-info">
+        <div class="ri-title">Account Shield: Active</div>
+        <div class="ri-desc">AI monitoring 24/7. 1 suspicious activity detected this month.</div>
+        <div class="risk-bars">
+          <div class="rb-item"><div class="rb-label">Identity</div><div class="rb-bar"><div class="rb-fill" style="width:12%;background:var(--success)"></div></div></div>
+          <div class="rb-item"><div class="rb-label">Transaction</div><div class="rb-bar"><div class="rb-fill" style="width:28%;background:var(--warning)"></div></div></div>
+          <div class="rb-item"><div class="rb-label">Account</div><div class="rb-bar"><div class="rb-fill" style="width:8%;background:var(--success)"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar Sweep Canvas -->
+    <div class="radar-canvas-card animate-fade-in delay-200">
+      <div class="rcc-title"><span>🎯 Live Threat Radar</span><span class="live-badge">● LIVE</span></div>
+      <canvas id="radarCanvas" width="320" height="160"></canvas>
+    </div>
+
+    <!-- Suspicious Transactions -->
+    <div class="suspicious-list animate-fade-in delay-300">
+      <div class="sl-title">⚠️ Flagged Transactions</div>
+
+      <div class="suspicious-item si-medium">
+        <div class="si-icon" style="background:rgba(255,184,0,0.12)">🌍</div>
+        <div class="si-info">
+          <div class="si-title">International Transfer — Dubai</div>
+          <div class="si-desc">Unusual location. Never transacted in Dubai before. Jul 8, 2026 · 2:14 AM</div>
+          <div class="si-meta">
+            <span class="si-badge si-risk-med">Medium Risk</span>
+            <span class="si-badge" style="background:rgba(255,255,255,0.06);color:var(--text-secondary)">New Location</span>
+          </div>
+        </div>
+        <div class="si-amount" style="color:var(--warning)">₹4,200</div>
+      </div>
+
+      <div class="suspicious-item si-low">
+        <div class="si-icon" style="background:rgba(0,245,255,0.08)">🛒</div>
+        <div class="si-info">
+          <div class="si-title">Multiple Merchant — Same Card</div>
+          <div class="si-desc">4 online transactions within 6 minutes. Possible card cloning check. Jul 7, 2026</div>
+          <div class="si-meta">
+            <span class="si-badge si-risk-low">Low Risk</span>
+            <span class="si-badge" style="background:rgba(255,255,255,0.06);color:var(--text-secondary)">Pattern Alert</span>
+          </div>
+        </div>
+        <div class="si-amount" style="color:var(--cyan)">₹1,840</div>
+      </div>
+    </div>
+
+    <!-- Location Map -->
+    <div class="map-card animate-fade-in delay-400">
+      <div class="mc-title">📍 Transaction Location Map</div>
+      <div class="map-visual">
+        <div class="map-dot map-you"></div>
+        <div class="map-dot map-suspicious"></div>
+        <div class="map-dot map-ok"></div>
+        <!-- Grid lines -->
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary)"><div style="width:8px;height:8px;border-radius:50%;background:var(--cyan)"></div>Your Location</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary)"><div style="width:8px;height:8px;border-radius:50%;background:var(--danger)"></div>Suspicious</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary)"><div style="width:8px;height:8px;border-radius:50%;background:var(--success)"></div>Verified</div>
+      </div>
+    </div>
+
+    <div style="height:90px;"></div>
+  </div>
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item"><div class="ni">🏠</div><div class="nl">Home</div></a>
+    <a href="dna.html" class="nav-item"><div class="ni">🧬</div><div class="nl">DNA</div></a>
+    <div class="nav-center" onclick="window.location.href='twin.html'">👤</div>
+    <a href="investments.html" class="nav-item"><div class="ni">📊</div><div class="nl">Invest</div></a>
+    <a href="profile.html" class="nav-item"><div class="ni">👤</div><div class="nl">Profile</div></a>
+  </div>
+</div></div>
+<script>
+// Score Gauge
+const gc = document.getElementById('scoreGauge').getContext('2d');
+const score = 18; // Low risk
+const angle = (score/100)*Math.PI*1.6;
+gc.clearRect(0,0,80,80);
+gc.beginPath();gc.arc(40,40,32,(Math.PI*0.7),(Math.PI*2.3));gc.strokeStyle='rgba(255,255,255,0.06)';gc.lineWidth=6;gc.lineCap='round';gc.stroke();
+gc.beginPath();gc.arc(40,40,32,(Math.PI*0.7),(Math.PI*0.7)+angle);gc.strokeStyle='#00FF9D';gc.lineWidth=6;gc.lineCap='round';gc.stroke();
+gc.font='bold 16px Space Grotesk';gc.fillStyle='#00FF9D';gc.textAlign='center';gc.textBaseline='middle';gc.fillText(score,40,42);
+
+// Radar sweep
+const rc = document.getElementById('radarCanvas').getContext('2d');
+let sweep = 0;
+const threats = [{x:80,y:60,r:6,color:'#FFB800'},{x:200,y:40,r:4,color:'#00F5FF'},{x:260,y:110,r:5,color:'#00FF9D'}];
+
+function drawRadar(){
+  rc.clearRect(0,0,320,160);
+  const cx=160,cy=80,maxR=75;
+
+  // Rings
+  for(let i=1;i<=3;i++){
+    rc.beginPath();rc.arc(cx,cy,maxR*(i/3),0,Math.PI*2);
+    rc.strokeStyle=`rgba(0,245,255,${0.06})`;rc.lineWidth=1;rc.stroke();
+  }
+  // Cross
+  rc.beginPath();rc.moveTo(cx-maxR,cy);rc.lineTo(cx+maxR,cy);rc.moveTo(cx,cy-maxR);rc.lineTo(cx,cy+maxR);
+  rc.strokeStyle='rgba(0,245,255,0.06)';rc.lineWidth=1;rc.stroke();
+
+  // Sweep
+  const sw = (sweep/360)*Math.PI*2 - Math.PI/2;
+  const grad = rc.createConicalGradient??(()=>{})();
+  rc.beginPath();
+  rc.moveTo(cx,cy);
+  rc.arc(cx,cy,maxR,sw-0.8,sw);
+  rc.fillStyle='rgba(0,245,255,0.15)';
+  rc.fill();
+
+  // Sweep line
+  rc.beginPath();rc.moveTo(cx,cy);
+  rc.lineTo(cx+maxR*Math.cos(sw), cy+maxR*Math.sin(sw));
+  rc.strokeStyle='rgba(0,245,255,0.7)';rc.lineWidth=1.5;rc.stroke();
+
+  // Center dot
+  rc.beginPath();rc.arc(cx,cy,4,0,Math.PI*2);rc.fillStyle='#00F5FF';rc.fill();
+
+  // Threats
+  threats.forEach(t=>{
+    rc.beginPath();rc.arc(t.x,t.y,t.r,0,Math.PI*2);rc.fillStyle=t.color;rc.globalAlpha=0.8;rc.fill();
+    rc.globalAlpha=1;
+    rc.beginPath();rc.arc(t.x,t.y,t.r+3+2*Math.sin(sweep*0.05),0,Math.PI*2);
+    rc.strokeStyle=t.color;rc.globalAlpha=0.3;rc.lineWidth=1;rc.stroke();rc.globalAlpha=1;
+  });
+
+  sweep=(sweep+1.5)%360;
+  requestAnimationFrame(drawRadar);
+}
+drawRadar();
+</script>
+</body>
+</html>

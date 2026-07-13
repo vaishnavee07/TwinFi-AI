@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Notifications</title>
+<meta name="description" content="Smart financial alerts and AI-generated notifications from your Living Financial Twin. Fraud alerts, goal milestones, and market insights."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{padding:40px 20px;}
+.phone{width:390px;height:844px;background:var(--bg-primary);border-radius:50px;box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 60px rgba(0,245,255,0.06);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;}
+.notif-scroll{flex:1;overflow-y:auto;}.notif-scroll::-webkit-scrollbar{display:none;}
+.notif-header{padding:12px 22px;position:sticky;top:0;z-index:10;background:rgba(5,8,22,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.page-title{font-family:var(--font-display);font-size:17px;font-weight:700;}
+.mark-all{font-size:12px;color:var(--cyan);cursor:pointer;}
+
+/* Filter Pills */
+.filter-row{display:flex;gap:8px;padding:12px 22px;overflow-x:auto;border-bottom:1px solid var(--border-glass);}
+.filter-row::-webkit-scrollbar{display:none;}
+.fp{padding:7px 16px;border-radius:var(--radius-full);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:var(--transition-fast);background:rgba(255,255,255,0.05);border:1px solid var(--border-glass);color:var(--text-muted);}
+.fp.active{background:var(--cyan-dim);color:var(--cyan);border-color:var(--border-cyan);}
+
+/* Notification Cards */
+.notif-section{padding:16px 22px;}
+.ns-date{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px;}
+
+.notif-card{
+  display:flex;gap:12px;align-items:flex-start;padding:14px;
+  border-radius:18px;margin-bottom:8px;cursor:pointer;transition:var(--transition-base);
+  border-left:3px solid;position:relative;
+}
+.notif-card.unread::after{content:'';position:absolute;top:14px;right:14px;width:6px;height:6px;border-radius:50%;background:var(--cyan);}
+.notif-card:hover{transform:translateX(3px);}
+
+.nc-ai{background:rgba(0,245,255,0.05);border-color:var(--cyan);}
+.nc-risk{background:rgba(255,77,109,0.06);border-color:var(--danger);}
+.nc-invest{background:rgba(0,255,157,0.04);border-color:var(--success);}
+.nc-goal{background:rgba(138,43,226,0.05);border-color:#8A2BE2;}
+.nc-market{background:rgba(255,184,0,0.04);border-color:var(--warning);}
+.nc-bank{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.1);}
+
+.nc-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.nc-content{flex:1;}
+.nc-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.nc-body{font-size:12px;color:var(--text-secondary);line-height:1.5;}
+.nc-time{font-size:10px;color:var(--text-muted);margin-top:5px;}
+.nc-action{margin-top:8px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:var(--radius-full);cursor:pointer;}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:76px;background:rgba(5,8,22,0.9);backdrop-filter:blur(24px);border-top:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-around;padding:0 10px;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;}.nl{font-size:10px;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="phone-wrap"><div class="phone">
+  <div class="status-bar"><span style="font-family:var(--font-mono)">9:41</span><div style="font-size:11px">▌▌▌ WiFi 🔋</div></div>
+  <div class="notif-scroll">
+    <div class="notif-header">
+      <div class="back-btn" onclick="history.back()">←</div>
+      <div class="page-title">🔔 Notifications</div>
+      <div class="mark-all">Mark all read</div>
+    </div>
+
+    <div class="filter-row">
+      <div class="fp active">All (12)</div>
+      <div class="fp">🧠 AI (4)</div>
+      <div class="fp">⚠️ Risks (2)</div>
+      <div class="fp">📈 Invest (3)</div>
+      <div class="fp">🎯 Goals (1)</div>
+      <div class="fp">🌐 Market (2)</div>
+    </div>
+
+    <div class="notif-section">
+      <div class="ns-date">Today · Jul 9, 2026</div>
+
+      <div class="notif-card nc-ai unread animate-fade-in">
+        <div class="nc-icon" style="background:rgba(0,245,255,0.12)">🧠</div>
+        <div class="nc-content">
+          <div class="nc-title">AI Insight: Subscription Leak</div>
+          <div class="nc-body">Your twin detected ₹22,164 annual leakage from overlapping OTT subscriptions. One-click fix available.</div>
+          <div class="nc-time">2 minutes ago</div>
+          <div class="nc-action" style="background:rgba(0,245,255,0.1);color:var(--cyan)">Fix Now →</div>
+        </div>
+      </div>
+
+      <div class="notif-card nc-risk unread animate-fade-in delay-100">
+        <div class="nc-icon" style="background:rgba(255,77,109,0.12)">🚨</div>
+        <div class="nc-content">
+          <div class="nc-title">Unusual Transaction Flagged</div>
+          <div class="nc-body">₹4,200 international transfer to Dubai detected at 2:14 AM. Not your usual pattern. Verify or block immediately.</div>
+          <div class="nc-time">6 hours ago</div>
+          <div class="nc-action" style="background:rgba(255,77,109,0.12);color:var(--danger)">Review Transaction</div>
+        </div>
+      </div>
+
+      <div class="notif-card nc-invest unread animate-fade-in delay-200">
+        <div class="nc-icon" style="background:rgba(0,255,157,0.1)">📈</div>
+        <div class="nc-content">
+          <div class="nc-title">Portfolio Milestone!</div>
+          <div class="nc-body">Parag Parikh Flexicap crossed +28% returns. Your ₹4.8L investment is up ₹1.07L. Twin recommends reviewing asset allocation.</div>
+          <div class="nc-time">9 hours ago</div>
+          <div class="nc-action" style="background:rgba(0,255,157,0.1);color:var(--success)">View Portfolio →</div>
+        </div>
+      </div>
+
+      <div class="ns-date" style="margin-top:16px;">Yesterday · Jul 8, 2026</div>
+
+      <div class="notif-card nc-goal animate-fade-in delay-300">
+        <div class="nc-icon" style="background:rgba(138,43,226,0.1)">🎯</div>
+        <div class="nc-content">
+          <div class="nc-title">Goal Update: Emergency Fund</div>
+          <div class="nc-body">You're 80% towards your Emergency Fund goal! Just ₹96,000 remaining. Expected completion: September 2026.</div>
+          <div class="nc-time">Yesterday, 6:30 PM</div>
+        </div>
+      </div>
+
+      <div class="notif-card nc-market animate-fade-in delay-400">
+        <div class="nc-icon" style="background:rgba(255,184,0,0.1)">📊</div>
+        <div class="nc-content">
+          <div class="nc-title">RBI Repo Rate Unchanged</div>
+          <div class="nc-body">RBI maintained repo rate at 6.5% in today's MPC meeting. Your EMI remains unchanged at ₹24,500. No action needed.</div>
+          <div class="nc-time">Yesterday, 2:00 PM</div>
+          <div class="nc-action" style="background:rgba(255,184,0,0.1);color:var(--warning)">Simulate Impact →</div>
+        </div>
+      </div>
+
+      <div class="notif-card nc-bank animate-fade-in delay-500">
+        <div class="nc-icon" style="background:rgba(255,255,255,0.06)">🏦</div>
+        <div class="nc-content">
+          <div class="nc-title">IDBI Bank: Statement Ready</div>
+          <div class="nc-body">Your June 2026 account statement is ready. Total credits: ₹1,20,000 · Total debits: ₹94,328 · Net: +₹25,672</div>
+          <div class="nc-time">Yesterday, 9:00 AM</div>
+        </div>
+      </div>
+
+      <div class="notif-card nc-invest animate-fade-in">
+        <div class="nc-icon" style="background:rgba(0,255,157,0.08)">💡</div>
+        <div class="nc-content">
+          <div class="nc-title">Investment Opportunity</div>
+          <div class="nc-body">New IDBI Special FD at 8.25% for 18 months. Based on your liquidity profile, investing ₹1L here could yield ₹12,375 guaranteed.</div>
+          <div class="nc-time">2 days ago</div>
+          <div class="nc-action" style="background:rgba(0,255,157,0.1);color:var(--success)">Invest Now →</div>
+        </div>
+      </div>
+    </div>
+    <div style="height:90px;"></div>
+  </div>
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item"><div class="ni">🏠</div><div class="nl">Home</div></a>
+    <a href="dna.html" class="nav-item"><div class="ni">🧬</div><div class="nl">DNA</div></a>
+    <div class="nav-center" onclick="window.location.href='twin.html'">👤</div>
+    <a href="investments.html" class="nav-item"><div class="ni">📊</div><div class="nl">Invest</div></a>
+    <a href="profile.html" class="nav-item"><div class="ni">👤</div><div class="nl">Profile</div></a>
+  </div>
+</div></div>
+</body>
+</html>

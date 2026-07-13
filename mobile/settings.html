@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Settings</title>
+<meta name="description" content="Customize your TwinFi AI experience. Manage security, biometrics, notifications, AI preferences, and data privacy settings."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{padding:40px 20px;}
+.phone{width:390px;height:844px;background:var(--bg-primary);border-radius:50px;box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 60px rgba(138,43,226,0.06);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;}
+.st-scroll{flex:1;overflow-y:auto;}.st-scroll::-webkit-scrollbar{display:none;}
+.st-header{padding:12px 22px;position:sticky;top:0;z-index:10;background:rgba(5,8,22,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.page-title{font-family:var(--font-display);font-size:17px;font-weight:700;}
+
+/* Profile Mini */
+.profile-mini{margin:16px 22px;padding:16px;background:linear-gradient(135deg,rgba(0,245,255,0.06),rgba(138,43,226,0.08));border:1px solid rgba(0,245,255,0.15);border-radius:22px;display:flex;align-items:center;gap:14px;}
+.pm-avatar{width:54px;height:54px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;flex-shrink:0;box-shadow:0 0 14px rgba(0,245,255,0.3);}
+.pm-name{font-weight:700;font-size:16px;margin-bottom:2px;}
+.pm-email{font-size:12px;color:var(--text-secondary);}
+.pm-badge{margin-top:5px;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:rgba(138,43,226,0.15);border:1px solid rgba(138,43,226,0.3);border-radius:var(--radius-full);font-size:10px;font-weight:700;color:#C77DFF;}
+
+/* Setting Groups */
+.setting-group{padding:0 22px;margin-bottom:20px;}
+.sg-label{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;padding-left:4px;}
+.sg-list{background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:20px;overflow:hidden;}
+
+.setting-row{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  transition:var(--transition-fast);cursor:pointer;border-bottom:1px solid var(--border-glass);
+}
+.setting-row:last-child{border-bottom:none;}
+.setting-row:hover{background:rgba(255,255,255,0.03);}
+.sr-icon{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.sr-text{flex:1;}
+.sr-title{font-size:14px;font-weight:600;margin-bottom:1px;}
+.sr-desc{font-size:11px;color:var(--text-secondary);}
+.sr-right{display:flex;align-items:center;gap:8px;}
+.sr-value{font-size:12px;color:var(--text-secondary);}
+.sr-chevron{font-size:14px;color:var(--text-muted);}
+
+/* Toggle */
+.toggle{position:relative;width:46px;height:26px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,0.08);border:1px solid var(--border-glass);border-radius:var(--radius-full);transition:var(--transition-base);}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:var(--text-secondary);border-radius:50%;transition:var(--transition-base);}
+.toggle input:checked+.toggle-slider{background:var(--cyan-dim);border-color:var(--cyan);}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px);background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+
+/* Twin Learning */
+.twin-learning-card{margin:0 22px 20px;padding:16px;background:linear-gradient(135deg,rgba(0,245,255,0.06),rgba(138,43,226,0.08));border:1px solid rgba(0,245,255,0.15);border-radius:20px;}
+.tlc-title{font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.tlc-stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.tlc-label{font-size:12px;color:var(--text-secondary);}
+.tlc-val{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--cyan);}
+.tlc-bar{height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;margin-bottom:8px;}
+.tlc-fill{height:100%;background:var(--gradient-main);border-radius:4px;}
+
+/* Logout */
+.logout-btn{margin:0 22px 30px;width:calc(100% - 44px);padding:16px;border:1px solid rgba(255,77,109,0.3);border-radius:var(--radius-full);background:rgba(255,77,109,0.06);color:var(--danger);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-body);transition:var(--transition-base);}
+.logout-btn:hover{background:rgba(255,77,109,0.12);}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:76px;background:rgba(5,8,22,0.9);backdrop-filter:blur(24px);border-top:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-around;padding:0 10px;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;}.nl{font-size:10px;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="phone-wrap"><div class="phone">
+  <div class="status-bar"><span style="font-family:var(--font-mono)">9:41</span><div style="font-size:11px">▌▌▌ WiFi 🔋</div></div>
+  <div class="st-scroll">
+    <div class="st-header">
+      <div class="back-btn" onclick="history.back()">←</div>
+      <div class="page-title">⚙️ Settings</div>
+      <div class="back-btn">ℹ️</div>
+    </div>
+
+    <div class="profile-mini animate-fade-in">
+      <div class="pm-avatar">A</div>
+      <div>
+        <div class="pm-name">Arjun Mehta</div>
+        <div class="pm-email">arjun.mehta@gmail.com</div>
+        <div class="pm-badge">🌟 TwinFi Premium</div>
+      </div>
+    </div>
+
+    <!-- Twin Learning -->
+    <div class="twin-learning-card animate-fade-in delay-100">
+      <div class="tlc-title">🧬 Twin Learning Status</div>
+      <div class="tlc-stat"><span class="tlc-label">Learning Progress</span><span class="tlc-val">87% Complete</span></div>
+      <div class="tlc-bar"><div class="tlc-fill" style="width:87%"></div></div>
+      <div class="tlc-stat"><span class="tlc-label">Events Analyzed</span><span class="tlc-val">847</span></div>
+      <div class="tlc-stat"><span class="tlc-label">Confidence Score</span><span class="tlc-val">93%</span></div>
+      <div class="tlc-stat"><span class="tlc-label">Last Learned</span><span class="tlc-val">2 mins ago</span></div>
+    </div>
+
+    <!-- Security -->
+    <div class="setting-group animate-fade-in delay-200">
+      <div class="sg-label">Security & Authentication</div>
+      <div class="sg-list">
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(0,245,255,0.1)">🆔</div>
+          <div class="sr-text"><div class="sr-title">Face ID</div><div class="sr-desc">Quick biometric login</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(0,255,157,0.1)">👆</div>
+          <div class="sr-text"><div class="sr-title">Fingerprint</div><div class="sr-desc">Touch ID authentication</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(138,43,226,0.1)">🔑</div>
+          <div class="sr-text"><div class="sr-title">Change Password</div><div class="sr-desc">Last changed 30 days ago</div></div>
+          <div class="sr-right"><span class="sr-chevron">›</span></div>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(255,184,0,0.1)">🛡️</div>
+          <div class="sr-text"><div class="sr-title">2-Factor Authentication</div><div class="sr-desc">Enabled via SMS</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Twin Learning Settings -->
+    <div class="setting-group animate-fade-in delay-300">
+      <div class="sg-label">Twin Learning Preferences</div>
+      <div class="sg-list">
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(0,245,255,0.1)">🧠</div>
+          <div class="sr-text"><div class="sr-title">Behavioral Learning</div><div class="sr-desc">Analyze spending patterns</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(138,43,226,0.1)">📍</div>
+          <div class="sr-text"><div class="sr-title">Location Intelligence</div><div class="sr-desc">Detect unusual spending locations</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(0,255,157,0.1)">📊</div>
+          <div class="sr-text"><div class="sr-title">Market Feed</div><div class="sr-desc">Real-time portfolio tracking</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(255,77,109,0.1)">🔒</div>
+          <div class="sr-text"><div class="sr-title">Data Sharing</div><div class="sr-desc">Share anonymized insights</div></div>
+          <label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="setting-group animate-fade-in delay-400">
+      <div class="sg-label">Notification Preferences</div>
+      <div class="sg-list">
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(0,245,255,0.1)">🤖</div>
+          <div class="sr-text"><div class="sr-title">AI Insights</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(255,77,109,0.1)">🚨</div>
+          <div class="sr-text"><div class="sr-title">Fraud Alerts</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(255,184,0,0.1)">📈</div>
+          <div class="sr-text"><div class="sr-title">Market Updates</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(0,255,157,0.1)">🎯</div>
+          <div class="sr-text"><div class="sr-title">Goal Milestones</div></div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Devices -->
+    <div class="setting-group animate-fade-in delay-500">
+      <div class="sg-label">Connected Devices</div>
+      <div class="sg-list">
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(0,245,255,0.08)">📱</div>
+          <div class="sr-text"><div class="sr-title">iPhone 15 Pro · This Device</div><div class="sr-desc">Mumbai · Active now</div></div>
+          <div class="sr-right"><span style="font-size:10px;color:var(--success);background:rgba(0,255,157,0.1);padding:2px 7px;border-radius:var(--radius-full);">Current</span></div>
+        </div>
+        <div class="setting-row">
+          <div class="sr-icon" style="background:rgba(255,255,255,0.05)">💻</div>
+          <div class="sr-text"><div class="sr-title">MacBook Pro</div><div class="sr-desc">Mumbai · Last active 2h ago</div></div>
+          <div class="sr-right"><span class="sr-chevron">›</span></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="logout-btn">🔓 Log Out of TwinFi AI</button>
+    <div style="height:90px;"></div>
+  </div>
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item"><div class="ni">🏠</div><div class="nl">Home</div></a>
+    <a href="dna.html" class="nav-item"><div class="ni">🧬</div><div class="nl">DNA</div></a>
+    <div class="nav-center" onclick="window.location.href='twin.html'">👤</div>
+    <a href="investments.html" class="nav-item"><div class="ni">📊</div><div class="nl">Invest</div></a>
+    <a href="profile.html" class="nav-item active"><div class="ni">👤</div><div class="nl">Profile</div></a>
+  </div>
+</div></div>
+</body>
+</html>

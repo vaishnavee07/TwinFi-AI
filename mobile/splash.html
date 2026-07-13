@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Splash</title>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .phone-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--bg-primary);
+    border-radius: 50px;
+    box-shadow: 0 0 0 8px #1c1c2e, 0 40px 80px rgba(0,0,0,0.8), 0 0 80px rgba(0,245,255,0.08), 0 0 140px rgba(138,43,226,0.06);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Status bar */
+  .status-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 10;
+  }
+
+  .status-time { font-family: var(--font-mono); }
+  .status-icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+
+  canvas#splash-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .splash-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    text-align: center;
+    padding: 0 40px;
+  }
+
+  .splash-logo-ring {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 28px;
+  }
+
+  .splash-logo-ring svg {
+    position: absolute;
+    inset: 0;
+    animation: spin-slow 6s linear infinite;
+  }
+
+  .splash-logo-inner {
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0,245,255,0.15), rgba(138,43,226,0.15));
+    border: 1px solid var(--border-cyan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  .splash-brand {
+    font-family: var(--font-display);
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .splash-tagline {
+    font-size: 13px;
+    color: var(--cyan);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 40px;
+  }
+
+  .splash-message {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 40px;
+    max-width: 280px;
+  }
+
+  .loading-bar {
+    width: 220px;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .loading-fill {
+    height: 100%;
+    background: var(--gradient-main);
+    border-radius: 10px;
+    box-shadow: 0 0 10px var(--cyan-glow);
+    animation: loading-anim 3s cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+
+  @keyframes loading-anim {
+    0%   { width: 0%; }
+    30%  { width: 40%; }
+    60%  { width: 70%; }
+    85%  { width: 88%; }
+    100% { width: 100%; }
+  }
+
+  .loading-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .splash-dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 30px;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    animation: dot-bounce 1.4s ease-in-out infinite both;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; background: var(--purple); }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dot-bounce {
+    0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
+    40%          { transform: scale(1.2); opacity: 1; }
+  }
+
+  .nav-hint {
+    position: absolute;
+    bottom: 30px;
+    left: 0; right: 0;
+    text-align: center;
+  }
+
+  .nav-hint a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: var(--gradient-main);
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 700;
+    color: #000;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(0,245,255,0.35);
+    animation: float 2.5s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+  <div class="phone">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <span>▌▌▌</span><span>WiFi</span><span>🔋</span>
+      </div>
+    </div>
+
+    <!-- Particle Canvas -->
+    <canvas id="splash-canvas"></canvas>
+
+    <!-- Main Content -->
+    <div class="splash-content">
+      <!-- Animated Logo Ring -->
+      <div class="splash-logo-ring">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="54" stroke="url(#ringGrad)" stroke-width="1.5" stroke-dasharray="8 6"/>
+          <defs>
+            <linearGradient id="ringGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00F5FF"/>
+              <stop offset="1" stop-color="#8A2BE2"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="splash-logo-inner">🧬</div>
+      </div>
+
+      <div class="splash-brand gradient-text">TwinFi AI</div>
+      <div class="splash-tagline">Living Financial Twin</div>
+
+      <div class="splash-message">
+        Your Financial Twin is Learning…<br/>
+        Analyzing 847 data points across your financial universe
+      </div>
+
+      <div class="loading-bar">
+        <div class="loading-fill"></div>
+      </div>
+      <div class="loading-text">Building your Living Financial Twin...</div>
+
+      <div class="splash-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+
+    <!-- Navigate to Login -->
+    <div class="nav-hint">
+      <a href="login.html" id="start-btn">Continue to App →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('splash-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 390;
+canvas.height = 844;
+
+const pts = Array.from({length:60}, () => ({
+  x: Math.random()*390, y: Math.random()*844,
+  vx:(Math.random()-0.5)*0.6, vy:(Math.random()-0.5)*0.6,
+  r: Math.random()*2+0.5,
+  color: Math.random()>0.5?'#00F5FF':'#8A2BE2',
+  a: Math.random()*0.35+0.05
+}));
+
+function draw() {
+  ctx.clearRect(0,0,390,844);
+  pts.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=390; if(p.x>390)p.x=0;
+    if(p.y<0)p.y=844; if(p.y>844)p.y=0;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=p.color;
+    ctx.globalAlpha=p.a;
+    ctx.fill();
+  });
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<80){
+        ctx.beginPath();
+        ctx.moveTo(pts[i].x,pts[i].y);
+        ctx.lineTo(pts[j].x,pts[j].y);
+        ctx.strokeStyle='#00F5FF';
+        ctx.globalAlpha=(1-d/80)*0.07;
+        ctx.lineWidth=0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha=1;
+  requestAnimationFrame(draw);
+}
+draw();
+
+// Auto-navigate after 4s
+setTimeout(()=>{ window.location.href='login.html'; }, 4500);
+</script>
+</body>
+</html>

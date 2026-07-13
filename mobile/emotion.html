@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Financial Emotion Intelligence</title>
+<meta name="description" content="Financial Emotion AI analyses your spending mood patterns, stress triggers, and emotional habits to help you make better money decisions."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{padding:40px 20px;}
+.phone{width:390px;height:844px;background:var(--bg-primary);border-radius:50px;box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 60px rgba(138,43,226,0.1);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;}
+.em-scroll{flex:1;overflow-y:auto;}.em-scroll::-webkit-scrollbar{display:none;}
+.em-header{padding:12px 22px;position:sticky;top:0;z-index:10;background:rgba(5,8,22,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.page-title{font-family:var(--font-display);font-size:17px;font-weight:700;}
+
+/* Mood Ring */
+.mood-ring{margin:16px 22px;padding:20px;text-align:center;background:linear-gradient(135deg,rgba(138,43,226,0.1),rgba(0,245,255,0.06));border:1px solid rgba(138,43,226,0.2);border-radius:24px;}
+.mood-emoji{font-size:48px;animation:float 3s ease-in-out infinite;display:block;margin-bottom:8px;}
+.mood-label{font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:4px;}
+.mood-desc{font-size:12px;color:var(--text-secondary);}
+.mood-timeline{display:flex;gap:6px;justify-content:center;margin-top:12px;}
+.mood-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:var(--transition-fast);}
+.mood-dot:hover{transform:scale(1.2);}
+
+/* Behavior Cards */
+.behavior-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 22px;margin-bottom:16px;}
+.bv-card{padding:14px;background:rgba(14,23,38,0.7);border:1px solid var(--border-glass);border-radius:18px;transition:var(--transition-base);cursor:pointer;}
+.bv-card:hover{border-color:var(--border-cyan);}
+.bv-icon{font-size:22px;margin-bottom:6px;}
+.bv-label{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;}
+.bv-val{font-family:var(--font-mono);font-size:16px;font-weight:700;}
+.bv-change{font-size:11px;margin-top:2px;font-weight:600;}
+
+/* Spending Patterns */
+.pattern-card{margin:0 22px 16px;padding:16px;background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:24px;}
+.pc-title{font-size:14px;font-weight:700;margin-bottom:12px;}
+.pattern-chart-wrap{height:140px;position:relative;}
+
+/* AI Insights */
+.insight-list{padding:0 22px;margin-bottom:16px;}
+.insight-item{display:flex;gap:12px;align-items:flex-start;padding:14px;background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:18px;margin-bottom:8px;}
+.ii-icon{font-size:20px;flex-shrink:0;}
+.ii-text{font-size:12px;color:var(--text-secondary);line-height:1.5;}
+.ii-text strong{color:var(--text-primary);}
+.ii-action{font-size:11px;color:var(--cyan);margin-top:6px;cursor:pointer;font-weight:600;}
+
+/* Coaching Card */
+.coaching-card{margin:0 22px;padding:16px;background:linear-gradient(135deg,rgba(0,245,255,0.05),rgba(138,43,226,0.08));border:1px solid rgba(0,245,255,0.15);border-radius:24px;}
+.cc-title{font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:10px;}
+.cc-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;}
+.cc-num{width:22px;height:22px;border-radius:50%;background:var(--cyan-dim);border:1px solid var(--border-cyan);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--cyan);flex-shrink:0;}
+.cc-text{font-size:12px;color:var(--text-secondary);line-height:1.4;}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:76px;background:rgba(5,8,22,0.9);backdrop-filter:blur(24px);border-top:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-around;padding:0 10px;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;}.nl{font-size:10px;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="phone-wrap"><div class="phone">
+  <div class="status-bar"><span style="font-family:var(--font-mono)">9:41</span><div style="font-size:11px">▌▌▌ WiFi 🔋</div></div>
+  <div class="em-scroll">
+    <div class="em-header">
+      <div class="back-btn" onclick="history.back()">←</div>
+      <div class="page-title">🧠 Emotion Intelligence</div>
+      <div class="back-btn">ℹ️</div>
+    </div>
+
+    <div class="mood-ring animate-fade-in">
+      <span class="mood-emoji">😌</span>
+      <div class="mood-label">Financially Calm</div>
+      <div class="mood-desc">Your spending aligns with your goals today. No stress triggers detected.</div>
+      <div class="mood-timeline">
+        <div class="mood-dot" title="Mon">😰</div>
+        <div class="mood-dot" title="Tue">😤</div>
+        <div class="mood-dot" title="Wed">😌</div>
+        <div class="mood-dot" title="Thu" style="transform:scale(1.2);box-shadow:0 0 12px rgba(0,245,255,0.5);">😊</div>
+        <div class="mood-dot" title="Fri">🤑</div>
+        <div class="mood-dot" title="Sat">😴</div>
+        <div class="mood-dot" title="Sun">😌</div>
+      </div>
+    </div>
+
+    <div class="behavior-grid animate-fade-in delay-200">
+      <div class="bv-card">
+        <div class="bv-icon">🎉</div>
+        <div class="bv-label">Salary Day Spend</div>
+        <div class="bv-val" style="color:var(--danger)">₹28K</div>
+        <div class="bv-change" style="color:var(--danger)">↑ 67% above avg</div>
+      </div>
+      <div class="bv-card">
+        <div class="bv-icon">😰</div>
+        <div class="bv-label">Stress Spending</div>
+        <div class="bv-val" style="color:var(--warning)">₹4.2K</div>
+        <div class="bv-change" style="color:var(--warning)">Mon & Tue spikes</div>
+      </div>
+      <div class="bv-card">
+        <div class="bv-icon">🪔</div>
+        <div class="bv-label">Festival Spending</div>
+        <div class="bv-val" style="color:var(--cyan)">₹42K</div>
+        <div class="bv-change" style="color:var(--success)">↓ 12% vs last year</div>
+      </div>
+      <div class="bv-card">
+        <div class="bv-icon">🌙</div>
+        <div class="bv-label">Late Night Shopping</div>
+        <div class="bv-val" style="color:var(--danger)">₹6.8K</div>
+        <div class="bv-change" style="color:var(--danger)">↑ 34% this month</div>
+      </div>
+      <div class="bv-card">
+        <div class="bv-icon">📈</div>
+        <div class="bv-label">Lifestyle Inflation</div>
+        <div class="bv-val" style="color:var(--warning)">+18%</div>
+        <div class="bv-change" style="color:var(--warning)">YoY increase</div>
+      </div>
+      <div class="bv-card">
+        <div class="bv-icon">⚡</div>
+        <div class="bv-label">Impulse Buying</div>
+        <div class="bv-val" style="color:var(--success)">28/100</div>
+        <div class="bv-change" style="color:var(--success)">Good control!</div>
+      </div>
+    </div>
+
+    <div class="pattern-card animate-fade-in delay-300">
+      <div class="pc-title">📅 Weekly Spending Pattern</div>
+      <div class="pattern-chart-wrap"><canvas id="patternChart"></canvas></div>
+    </div>
+
+    <div class="insight-list animate-fade-in delay-400">
+      <div class="insight-item">
+        <div class="ii-icon">🎉</div>
+        <div>
+          <div class="ii-text"><strong>Salary Day Overspend Pattern:</strong> You spend 67% more than average on salary day. Consider setting up auto-SIP and auto-savings on salary credit day.</div>
+          <div class="ii-action">Set up auto-savings →</div>
+        </div>
+      </div>
+      <div class="insight-item">
+        <div class="ii-icon">🌙</div>
+        <div>
+          <div class="ii-text"><strong>Late Night Shopping:</strong> 43% of your impulse purchases happen between 10 PM–1 AM. Your twin recommends a cool-down timer for midnight carts.</div>
+          <div class="ii-action">Enable spending pause →</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="coaching-card animate-fade-in delay-500">
+      <div class="cc-title">🎯 AI Behavioral Coaching Plan</div>
+      <div class="cc-step">
+        <div class="cc-num">1</div>
+        <div class="cc-text">Activate <strong style="color:#fff">Salary Day Guard</strong> — auto-invest ₹15K on the 1st of every month</div>
+      </div>
+      <div class="cc-step">
+        <div class="cc-num">2</div>
+        <div class="cc-text">Enable <strong style="color:#fff">Stress Spending Alert</strong> — get notified when spending spikes during work hours</div>
+      </div>
+      <div class="cc-step">
+        <div class="cc-num">3</div>
+        <div class="cc-text">Set a <strong style="color:#fff">Night Cart Pause</strong> — 10 PM shopping cooldown of 30 minutes</div>
+      </div>
+    </div>
+
+    <div style="height:90px;"></div>
+  </div>
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item"><div class="ni">🏠</div><div class="nl">Home</div></a>
+    <a href="dna.html" class="nav-item"><div class="ni">🧬</div><div class="nl">DNA</div></a>
+    <div class="nav-center" onclick="window.location.href='twin.html'">👤</div>
+    <a href="investments.html" class="nav-item"><div class="ni">📊</div><div class="nl">Invest</div></a>
+    <a href="profile.html" class="nav-item"><div class="ni">👤</div><div class="nl">Profile</div></a>
+  </div>
+</div></div>
+<script>
+const ctx = document.getElementById('patternChart').getContext('2d');
+new Chart(ctx, {
+  type:'bar',
+  data:{
+    labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    datasets:[{
+      data:[4200,3100,2800,5600,8400,12000,6200],
+      backgroundColor:['rgba(255,77,109,0.7)','rgba(255,184,0,0.6)','rgba(0,245,255,0.6)','rgba(0,255,157,0.7)','rgba(138,43,226,0.7)','rgba(255,77,109,0.8)','rgba(0,245,255,0.5)'],
+      borderRadius:8,borderSkipped:false,
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#AAB4C5',font:{size:10}}},
+      y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#AAB4C5',font:{size:9},callback:v=>'₹'+v/1000+'K'}}
+    }
+  }
+});
+</script>
+</body>
+</html>

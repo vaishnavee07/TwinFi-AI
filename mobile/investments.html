@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Investment Dashboard</title>
+<meta name="description" content="Your AI-curated investment dashboard. Monitor mutual funds, stocks, SIPs and get DNA-matched portfolio recommendations from your Financial Twin."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{padding:40px 20px;}
+.phone{width:390px;height:844px;background:var(--bg-primary);border-radius:50px;box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 60px rgba(0,255,157,0.06);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;}
+.inv-scroll{flex:1;overflow-y:auto;}.inv-scroll::-webkit-scrollbar{display:none;}
+.inv-header{padding:12px 22px;position:sticky;top:0;z-index:10;background:rgba(5,8,22,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.page-title{font-family:var(--font-display);font-size:17px;font-weight:700;}
+
+/* Portfolio Hero */
+.portfolio-hero{margin:16px 22px;padding:22px;background:linear-gradient(135deg,rgba(0,255,157,0.08),rgba(14,23,38,0.8));border:1px solid rgba(0,255,157,0.2);border-radius:24px;}
+.ph-label{font-size:12px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}
+.ph-value{font-family:var(--font-display);font-size:36px;font-weight:700;color:#fff;margin-bottom:4px;}
+.ph-returns{display:flex;gap:16px;margin-bottom:14px;}
+.ph-ret-item{text-align:left;}
+.ph-ret-val{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--success);}
+.ph-ret-label{font-size:10px;color:var(--text-secondary);}
+.donut-wrap{height:160px;position:relative;}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.dc-val{font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--success);}
+.dc-label{font-size:10px;color:var(--text-secondary);}
+
+/* Legend */
+.alloc-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.al-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);}
+.al-dot{width:8px;height:8px;border-radius:50%;}
+
+/* Fund List */
+.funds-section{padding:0 22px;margin-bottom:16px;}
+.fs-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.fs-title{font-family:var(--font-display);font-size:16px;font-weight:700;}
+.filter-tabs{display:flex;gap:4px;}
+.ft{padding:5px 12px;border-radius:var(--radius-full);font-size:11px;font-weight:600;cursor:pointer;border:none;background:rgba(255,255,255,0.05);color:var(--text-muted);transition:var(--transition-fast);}
+.ft.active{background:var(--cyan-dim);color:var(--cyan);}
+
+.fund-item{display:flex;align-items:center;gap:12px;padding:14px;background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:18px;margin-bottom:8px;cursor:pointer;transition:var(--transition-fast);}
+.fund-item:hover{border-color:rgba(255,255,255,0.12);}
+.fund-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.fund-info{flex:1;}
+.fund-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.fund-meta{font-size:11px;color:var(--text-secondary);}
+.fund-right{text-align:right;}
+.fund-value{font-family:var(--font-mono);font-size:14px;font-weight:700;margin-bottom:2px;}
+.fund-return{font-size:12px;font-weight:700;}
+.fund-bar{height:3px;background:rgba(255,255,255,0.06);border-radius:3px;margin-top:4px;overflow:hidden;}
+.fund-bar-fill{height:100%;border-radius:3px;}
+
+/* AI Insights */
+.ai-invest-card{margin:0 22px;padding:16px;background:linear-gradient(135deg,rgba(0,245,255,0.05),rgba(138,43,226,0.08));border:1px solid rgba(0,245,255,0.15);border-radius:24px;}
+.aic-title{font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:10px;}
+.aic-item{display:flex;gap:8px;font-size:12px;color:var(--text-secondary);margin-bottom:8px;line-height:1.5;}
+
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:76px;background:rgba(5,8,22,0.9);backdrop-filter:blur(24px);border-top:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-around;padding:0 10px;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);}
+.nav-item.active{color:var(--cyan);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;}.nl{font-size:10px;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="phone-wrap"><div class="phone">
+  <div class="status-bar"><span style="font-family:var(--font-mono)">9:41</span><div style="font-size:11px">▌▌▌ WiFi 🔋</div></div>
+  <div class="inv-scroll">
+    <div class="inv-header">
+      <div class="back-btn" onclick="history.back()">←</div>
+      <div class="page-title">📊 Investments</div>
+      <div class="back-btn">+</div>
+    </div>
+
+    <div class="portfolio-hero animate-fade-in">
+      <div class="ph-label">Total Portfolio Value</div>
+      <div class="ph-value" id="portVal">₹0</div>
+      <div class="ph-returns">
+        <div class="ph-ret-item"><div class="ph-ret-val">+₹3.2L</div><div class="ph-ret-label">Total Returns</div></div>
+        <div class="ph-ret-item"><div class="ph-ret-val">+22.4%</div><div class="ph-ret-label">XIRR</div></div>
+        <div class="ph-ret-item"><div class="ph-ret-val">₹10K</div><div class="ph-ret-label">Monthly SIP</div></div>
+      </div>
+      <div class="donut-wrap">
+        <canvas id="donutChart"></canvas>
+        <div class="donut-center">
+          <div class="dc-val">+22.4%</div>
+          <div class="dc-label">XIRR</div>
+        </div>
+      </div>
+      <div class="alloc-legend">
+        <div class="al-item"><div class="al-dot" style="background:#00F5FF"></div>Mutual Funds 48%</div>
+        <div class="al-item"><div class="al-dot" style="background:#8A2BE2"></div>Stocks 24%</div>
+        <div class="al-item"><div class="al-dot" style="background:#FFB800"></div>Gold 12%</div>
+        <div class="al-item"><div class="al-dot" style="background:#00FF9D"></div>FD 10%</div>
+        <div class="al-item"><div class="al-dot" style="background:#FF4D6D"></div>Crypto 6%</div>
+      </div>
+    </div>
+
+    <div class="funds-section animate-fade-in delay-200">
+      <div class="fs-header">
+        <div class="fs-title">Holdings</div>
+        <div class="filter-tabs">
+          <div class="ft active">All</div>
+          <div class="ft">MF</div>
+          <div class="ft">Stocks</div>
+          <div class="ft">Gold</div>
+        </div>
+      </div>
+
+      <div class="fund-item">
+        <div class="fund-icon" style="background:rgba(0,245,255,0.1)">📈</div>
+        <div class="fund-info">
+          <div class="fund-name">Parag Parikh Flexicap</div>
+          <div class="fund-meta">Mutual Fund · 3Y · SIP ₹6K</div>
+          <div class="fund-bar"><div class="fund-bar-fill" style="width:78%;background:var(--gradient-main)"></div></div>
+        </div>
+        <div class="fund-right">
+          <div class="fund-value">₹4.8L</div>
+          <div class="fund-return" style="color:var(--success)">+28.4%</div>
+        </div>
+      </div>
+
+      <div class="fund-item">
+        <div class="fund-icon" style="background:rgba(138,43,226,0.1)">📊</div>
+        <div class="fund-info">
+          <div class="fund-name">HDFC Nifty 50 Index</div>
+          <div class="fund-meta">Mutual Fund · 2Y · SIP ₹4K</div>
+          <div class="fund-bar"><div class="fund-bar-fill" style="width:55%;background:linear-gradient(90deg,#8A2BE2,#C77DFF)"></div></div>
+        </div>
+        <div class="fund-right">
+          <div class="fund-value">₹2.4L</div>
+          <div class="fund-return" style="color:var(--success)">+18.2%</div>
+        </div>
+      </div>
+
+      <div class="fund-item">
+        <div class="fund-icon" style="background:rgba(255,184,0,0.1)">🥇</div>
+        <div class="fund-info">
+          <div class="fund-name">Sovereign Gold Bond</div>
+          <div class="fund-meta">Gold · 2Y · Lump sum</div>
+          <div class="fund-bar"><div class="fund-bar-fill" style="width:62%;background:linear-gradient(90deg,#FFB800,#FF8C00)"></div></div>
+        </div>
+        <div class="fund-right">
+          <div class="fund-value">₹1.5L</div>
+          <div class="fund-return" style="color:var(--success)">+14.8%</div>
+        </div>
+      </div>
+
+      <div class="fund-item">
+        <div class="fund-icon" style="background:rgba(0,255,157,0.1)">🏦</div>
+        <div class="fund-info">
+          <div class="fund-name">IDBI Bank FD</div>
+          <div class="fund-meta">Fixed Deposit · 1Y · 7.25%</div>
+          <div class="fund-bar"><div class="fund-bar-fill" style="width:40%;background:linear-gradient(90deg,#00FF9D,#00D4AA)"></div></div>
+        </div>
+        <div class="fund-right">
+          <div class="fund-value">₹1.2L</div>
+          <div class="fund-return" style="color:var(--success)">+7.25%</div>
+        </div>
+      </div>
+
+      <div class="fund-item">
+        <div class="fund-icon" style="background:rgba(255,77,109,0.1)">₿</div>
+        <div class="fund-info">
+          <div class="fund-name">Bitcoin & Ethereum</div>
+          <div class="fund-meta">Crypto · 1Y · High Risk</div>
+          <div class="fund-bar"><div class="fund-bar-fill" style="width:35%;background:linear-gradient(90deg,#FF4D6D,#FF1744)"></div></div>
+        </div>
+        <div class="fund-right">
+          <div class="fund-value">₹80K</div>
+          <div class="fund-return" style="color:var(--danger)">-8.4%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-invest-card animate-fade-in delay-300">
+      <div class="aic-title">🧠 AI Investment Insights</div>
+      <div class="aic-item"><span>🎯</span><span>Your XIRR of 22.4% beats benchmark (Nifty: 14.2%). <strong style="color:#fff">Excellent performance!</strong></span></div>
+      <div class="aic-item"><span>⚠️</span><span>Crypto allocation at 6% exceeds recommended limit for your risk profile. Consider rebalancing to 3%.</span></div>
+      <div class="aic-item"><span>💡</span><span>Adding Mid-Cap allocation (15%) could boost returns by est. 2-4% CAGR given your 10Y horizon.</span></div>
+    </div>
+
+    <div style="height:90px;"></div>
+  </div>
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item"><div class="ni">🏠</div><div class="nl">Home</div></a>
+    <a href="dna.html" class="nav-item"><div class="ni">🧬</div><div class="nl">DNA</div></a>
+    <div class="nav-center" onclick="window.location.href='twin.html'">👤</div>
+    <a href="investments.html" class="nav-item active"><div class="ni">📊</div><div class="nl">Invest</div></a>
+    <a href="profile.html" class="nav-item"><div class="ni">👤</div><div class="nl">Profile</div></a>
+  </div>
+</div></div>
+<script>
+// Portfolio Counter
+let pv=0,pt=12800000;
+const pEl=document.getElementById('portVal');
+const pT=setInterval(()=>{pv+=180000;if(pv>=pt){pEl.textContent='₹12,80,000';clearInterval(pT);return;}pEl.textContent='₹'+pv.toLocaleString('en-IN');},25);
+
+// Donut Chart
+new Chart(document.getElementById('donutChart').getContext('2d'),{
+  type:'doughnut',
+  data:{
+    labels:['Mutual Funds','Stocks','Gold','FD','Crypto'],
+    datasets:[{data:[48,24,12,10,6],backgroundColor:['#00F5FF','#8A2BE2','#FFB800','#00FF9D','#FF4D6D'],borderWidth:0,hoverOffset:4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}
+});
+</script>
+</body>
+</html>

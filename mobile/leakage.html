@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Money Leakage</title>
+<meta name="description" content="Detect invisible money leakage with AI. Identify subscription overload, impulse spending, and hidden wastage draining your financial health."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{padding:40px 20px;}
+.phone{width:390px;height:844px;background:var(--bg-primary);border-radius:50px;box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 60px rgba(255,77,109,0.08);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;}
+
+.leak-scroll{flex:1;overflow-y:auto;}
+.leak-scroll::-webkit-scrollbar{display:none;}
+
+.leak-header{padding:12px 22px;position:sticky;top:0;z-index:10;background:rgba(5,8,22,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.page-title{font-family:var(--font-display);font-size:17px;font-weight:700;}
+
+/* Leakage Hero */
+.leak-hero{
+  margin:16px 22px;padding:24px;
+  background:linear-gradient(135deg,rgba(255,77,109,0.1),rgba(14,23,38,0.8));
+  border:1px solid rgba(255,77,109,0.25);border-radius:24px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.leak-amount{font-family:var(--font-display);font-size:42px;font-weight:700;color:var(--danger);}
+.leak-label{font-size:13px;color:var(--text-secondary);margin-top:4px;margin-bottom:16px;}
+.leak-badges{display:flex;justify-content:center;gap:12px;}
+.lb{padding:6px 16px;border-radius:var(--radius-full);font-size:12px;font-weight:700;}
+.lb-green{background:rgba(0,255,157,0.12);color:var(--success);border:1px solid rgba(0,255,157,0.3);}
+.lb-cyan{background:rgba(0,245,255,0.1);color:var(--cyan);border:1px solid var(--border-cyan);}
+
+/* Leakage Viz Canvas */
+.leak-canvas-wrap{
+  margin:0 22px 16px;
+  background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:24px;
+  overflow:hidden;position:relative;
+}
+canvas#leakCanvas{display:block;}
+
+/* Leakage Items */
+.leakage-list{padding:0 22px;margin-bottom:16px;}
+.ll-title{font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:12px;}
+
+.leak-item{
+  display:flex;align-items:center;gap:12px;padding:14px;
+  background:rgba(14,23,38,0.6);border:1px solid var(--border-glass);border-radius:18px;
+  margin-bottom:8px;cursor:pointer;transition:var(--transition-base);
+}
+.leak-item:hover{border-color:rgba(255,77,109,0.3);}
+.leak-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.leak-info{flex:1;}
+.leak-name{font-size:14px;font-weight:600;margin-bottom:2px;}
+.leak-desc{font-size:11px;color:var(--text-secondary);}
+.leak-right{text-align:right;}
+.leak-cost{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--danger);}
+.leak-fix-btn{
+  margin-top:3px;padding:3px 10px;border-radius:var(--radius-full);
+  background:rgba(0,255,157,0.12);border:1px solid rgba(0,255,157,0.3);
+  font-size:10px;font-weight:700;color:var(--success);cursor:pointer;
+}
+
+/* Savings Potential */
+.savings-potential{
+  margin:0 22px;padding:16px;
+  background:linear-gradient(135deg,rgba(0,255,157,0.08),rgba(14,23,38,0.8));
+  border:1px solid rgba(0,255,157,0.25);border-radius:24px;
+}
+.sp-title{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--success);}
+.sp-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;}
+.sp-label{color:var(--text-secondary);}
+.sp-val{font-family:var(--font-mono);font-weight:700;}
+.sp-divider{height:1px;background:rgba(255,255,255,0.06);margin:8px 0;}
+.sp-total{font-size:16px;font-weight:700;color:var(--success);}
+.sp-action{
+  margin-top:12px;width:100%;padding:14px;border:none;border-radius:var(--radius-full);
+  background:linear-gradient(135deg,#00FF9D,#00D4AA);color:#000;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-body);
+  box-shadow:0 4px 16px rgba(0,255,157,0.3);
+}
+
+/* Bottom Nav */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:76px;background:rgba(5,8,22,0.9);backdrop-filter:blur(24px);border-top:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-around;padding:0 10px;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;}.nl{font-size:10px;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+<div class="phone">
+  <div class="status-bar"><span style="font-family:var(--font-mono)">9:41</span><div style="font-size:11px">▌▌▌ WiFi 🔋</div></div>
+  <div class="leak-scroll">
+    <div class="leak-header">
+      <div class="back-btn" onclick="history.back()">←</div>
+      <div class="page-title">🌊 Money Leakage Detector</div>
+      <div class="back-btn">⬆️</div>
+    </div>
+
+    <!-- Hero -->
+    <div class="leak-hero animate-fade-in">
+      <div class="leak-amount" id="totalLeak">₹0</div>
+      <div class="leak-label">Annual Money Leakage Detected by TwinFi AI</div>
+      <div class="leak-badges">
+        <div class="lb lb-green">💰 Save ₹68K/year</div>
+        <div class="lb lb-cyan">🎯 +14 months goal faster</div>
+      </div>
+    </div>
+
+    <!-- Water Leak Visualization -->
+    <div class="leak-canvas-wrap animate-fade-in delay-200">
+      <canvas id="leakCanvas" width="346" height="180"></canvas>
+    </div>
+
+    <!-- Leakage Items -->
+    <div class="leakage-list animate-fade-in delay-300">
+      <div class="ll-title">🔍 Detected Leakages</div>
+
+      <div class="leak-item">
+        <div class="leak-icon" style="background:rgba(255,77,109,0.1)">📺</div>
+        <div class="leak-info"><div class="leak-name">OTT Subscription Overlap</div><div class="leak-desc">Netflix + Hotstar + Prime — 2 unused</div></div>
+        <div class="leak-right"><div class="leak-cost">-₹22K/yr</div><div class="leak-fix-btn" onclick="fixLeak(this,22000)">Fix Now</div></div>
+      </div>
+
+      <div class="leak-item">
+        <div class="leak-icon" style="background:rgba(255,184,0,0.1)">🏋️</div>
+        <div class="leak-info"><div class="leak-name">Unused Gym Membership</div><div class="leak-desc">Last visited: 3 months ago</div></div>
+        <div class="leak-right"><div class="leak-cost">-₹18K/yr</div><div class="leak-fix-btn" onclick="fixLeak(this,18000)">Fix Now</div></div>
+      </div>
+
+      <div class="leak-item">
+        <div class="leak-icon" style="background:rgba(138,43,226,0.1)">🛡️</div>
+        <div class="leak-info"><div class="leak-name">Duplicate Insurance</div><div class="leak-desc">3 health plans — 1 is redundant</div></div>
+        <div class="leak-right"><div class="leak-cost">-₹14.4K/yr</div><div class="leak-fix-btn" onclick="fixLeak(this,14400)">Fix Now</div></div>
+      </div>
+
+      <div class="leak-item">
+        <div class="leak-icon" style="background:rgba(0,245,255,0.1)">🏦</div>
+        <div class="leak-info"><div class="leak-name">Bank Maintenance Charges</div><div class="leak-desc">Non-zero min balance penalty × 3 accounts</div></div>
+        <div class="leak-right"><div class="leak-cost">-₹7.2K/yr</div><div class="leak-fix-btn" onclick="fixLeak(this,7200)">Fix Now</div></div>
+      </div>
+
+      <div class="leak-item">
+        <div class="leak-icon" style="background:rgba(0,255,157,0.1)">☕</div>
+        <div class="leak-info"><div class="leak-name">Premium Coffee Subscriptions</div><div class="leak-desc">Starbucks Gold + Blue Tokai bundle</div></div>
+        <div class="leak-right"><div class="leak-cost">-₹6.6K/yr</div><div class="leak-fix-btn" onclick="fixLeak(this,6600)">Fix Now</div></div>
+      </div>
+    </div>
+
+    <!-- Savings Potential -->
+    <div class="savings-potential animate-fade-in delay-400">
+      <div class="sp-title">💡 Savings Potential</div>
+      <div class="sp-row"><span class="sp-label">Monthly Savings</span><span class="sp-val" style="color:var(--success)">₹5,683</span></div>
+      <div class="sp-row"><span class="sp-label">Annual Savings</span><span class="sp-val" style="color:var(--success)">₹68,200</span></div>
+      <div class="sp-row"><span class="sp-label">Goal Acceleration</span><span class="sp-val" style="color:var(--cyan)">+14 months</span></div>
+      <div class="sp-divider"></div>
+      <div class="sp-row"><span class="sp-label">5-Year Compounded</span><span class="sp-total">₹4.8L+</span></div>
+      <button class="sp-action" onclick="alert('All leakages scheduled for review!')">💪 Plug All Leakages Now</button>
+    </div>
+
+    <div style="height:90px;"></div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item"><div class="ni">🏠</div><div class="nl">Home</div></a>
+    <a href="dna.html" class="nav-item"><div class="ni">🧬</div><div class="nl">DNA</div></a>
+    <div class="nav-center" onclick="window.location.href='twin.html'">👤</div>
+    <a href="investments.html" class="nav-item"><div class="ni">📊</div><div class="nl">Invest</div></a>
+    <a href="profile.html" class="nav-item"><div class="ni">👤</div><div class="nl">Profile</div></a>
+  </div>
+</div>
+</div>
+
+<script>
+/* ── Animated Counter for Leak Amount ── */
+let leakTarget = 68200, leakCurrent = 0;
+const leakEl = document.getElementById('totalLeak');
+const leakTimer = setInterval(() => {
+  leakCurrent += 900;
+  if (leakCurrent >= leakTarget) { leakEl.textContent = '₹68,200'; clearInterval(leakTimer); return; }
+  leakEl.textContent = '₹' + leakCurrent.toLocaleString('en-IN');
+}, 30);
+
+/* ── Water Leak Canvas Animation ── */
+const canvas = document.getElementById('leakCanvas');
+const ctx = canvas.getContext('2d');
+
+// Pipe system
+const pipes = [
+  {x: 30, y: 20, w: 80, h: 16, color:'#00F5FF'},
+  {x: 130, y: 20, w: 80, h: 16, color:'#8A2BE2'},
+  {x: 230, y: 20, w: 80, h: 16, color:'#FF4D6D'},
+];
+
+// Drip particles
+const drips = [];
+for (let i = 0; i < 40; i++) {
+  drips.push({
+    x: 50 + Math.random() * 250,
+    y: 36 + Math.random() * 80,
+    vy: 1 + Math.random() * 2,
+    r: 2 + Math.random() * 3,
+    color: ['#00F5FF','#8A2BE2','#FF4D6D','#FFB800','#00FF9D'][Math.floor(Math.random()*5)],
+    alpha: Math.random() * 0.8 + 0.2,
+    delay: Math.random() * 60,
+    active: false,
+  });
+}
+
+let frame2 = 0;
+function drawLeak() {
+  ctx.clearRect(0, 0, 346, 180);
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, 0, 180);
+  bg.addColorStop(0, 'rgba(14,23,38,0.0)');
+  bg.addColorStop(1, 'rgba(255,77,109,0.04)');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, 346, 180);
+
+  // Pipes
+  pipes.forEach(p => {
+    ctx.fillStyle = p.color + '22';
+    ctx.strokeStyle = p.color + '88';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(p.x, p.y, p.w, p.h, 4);
+    ctx.fill(); ctx.stroke();
+
+    // Flow inside pipe
+    for (let i = 0; i < 3; i++) {
+      const fx = p.x + ((i*40 + frame2 * 2) % p.w);
+      ctx.beginPath();
+      ctx.arc(fx, p.y + p.h/2, 3, 0, Math.PI*2);
+      ctx.fillStyle = p.color + '66';
+      ctx.fill();
+    }
+  });
+
+  // Labels
+  ctx.font = 'bold 10px Inter';
+  ctx.textAlign = 'center';
+  [['₹22K OTT', 70], ['₹18K Gym', 170], ['₹14.4K Insurance', 270]].forEach(([label, x]) => {
+    ctx.fillStyle = '#AAB4C5';
+    ctx.fillText(label, x, 12);
+  });
+
+  // Drip particles
+  drips.forEach(d => {
+    if (frame2 < d.delay) return;
+    d.active = true;
+    d.y += d.vy;
+    if (d.y > 175) {
+      d.y = 36; d.vy = 1 + Math.random() * 2;
+      d.x = 30 + Math.random() * 280;
+    }
+
+    // Teardrop shape
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    ctx.fillStyle = d.color;
+    ctx.globalAlpha = d.alpha * (1 - (d.y - 36) / 140);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // Puddle at bottom
+  const puddle = ctx.createRadialGradient(173, 168, 0, 173, 168, 120);
+  puddle.addColorStop(0, 'rgba(255,77,109,0.12)');
+  puddle.addColorStop(1, 'transparent');
+  ctx.fillStyle = puddle;
+  ctx.fillRect(0, 140, 346, 40);
+
+  // Bottom text
+  ctx.fillStyle = 'rgba(255,77,109,0.6)';
+  ctx.font = 'bold 11px Inter';
+  ctx.textAlign = 'center';
+  ctx.fillText('💧 ₹68,200 draining annually...', 173, 172);
+
+  frame2++;
+  requestAnimationFrame(drawLeak);
+}
+drawLeak();
+
+function fixLeak(btn, amount) {
+  btn.textContent = '✓ Fixed';
+  btn.style.background = 'rgba(0,255,157,0.2)';
+  btn.style.color = 'var(--success)';
+  btn.parentElement.parentElement.style.opacity = '0.5';
+}
+</script>
+</body>
+</html>

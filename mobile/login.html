@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Login</title>
+<meta name="description" content="Log in to TwinFi AI – Your Living Financial Twin. Secure access with biometrics, OTP, or password."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="../assets/js/api-client.js"></script>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+.phone{
+  width:390px;height:844px;
+  background:var(--bg-primary);
+  border-radius:50px;
+  box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 80px rgba(0,245,255,0.06);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.status-bar{
+  height:44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;
+}
+.status-icons{display:flex;gap:6px;align-items:center;}
+
+.login-bg{
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;
+}
+.orb1{position:absolute;width:300px;height:300px;top:-80px;right:-80px;background:rgba(0,245,255,0.06);border-radius:50%;filter:blur(80px);}
+.orb2{position:absolute;width:250px;height:250px;bottom:100px;left:-60px;background:rgba(138,43,226,0.08);border-radius:50%;filter:blur(80px);}
+
+.login-scroll{
+  flex:1;overflow-y:auto;padding:20px 28px 100px;
+  display:flex;flex-direction:column;
+}
+.login-scroll::-webkit-scrollbar{display:none;}
+
+.login-header{margin-top:20px;margin-bottom:32px;text-align:center;}
+.login-logo{
+  width:60px;height:60px;border-radius:18px;background:var(--gradient-main);
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  margin:0 auto 16px;box-shadow:0 0 20px rgba(0,245,255,0.3);
+  animation:float 3s ease-in-out infinite;
+}
+.greeting{
+  font-family:var(--font-display);font-size:11px;
+  color:var(--cyan);letter-spacing:0.12em;text-transform:uppercase;
+  margin-bottom:6px;
+}
+.login-title{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-0.02em;margin-bottom:6px;}
+.login-sub{font-size:14px;color:var(--text-secondary);}
+
+/* Biometric Pills */
+.biometric-row{
+  display:flex;gap:10px;margin-bottom:24px;
+}
+.bio-pill{
+  flex:1;padding:14px;
+  background:var(--bg-glass);border:1px solid var(--border-glass);
+  border-radius:var(--radius-xl);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:pointer;transition:var(--transition-base);
+}
+.bio-pill:hover{border-color:var(--border-cyan);box-shadow:var(--shadow-cyan);}
+.bio-icon{font-size:26px;}
+.bio-label{font-size:11px;color:var(--text-secondary);font-weight:500;}
+
+.divider-row{
+  display:flex;align-items:center;gap:12px;margin-bottom:24px;
+}
+.divider-line{flex:1;height:1px;background:var(--border-glass);}
+.divider-text{font-size:12px;color:var(--text-muted);white-space:nowrap;}
+
+/* Form */
+.form-group{margin-bottom:16px;position:relative;}
+.form-label{font-size:12px;font-weight:600;color:var(--text-secondary);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:8px;display:block;}
+.form-control{
+  width:100%;padding:16px 18px;
+  background:rgba(14,23,38,0.8);
+  border:1px solid var(--border-glass);
+  border-radius:var(--radius-lg);
+  color:var(--text-primary);font-family:var(--font-body);font-size:15px;
+  outline:none;transition:var(--transition-fast);
+  box-sizing:border-box;
+}
+.form-control:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,255,0.08);}
+.form-control::placeholder{color:var(--text-muted);}
+.eye-btn{
+  position:absolute;right:16px;bottom:16px;
+  background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;
+}
+
+.otp-row{display:flex;gap:10px;}
+.otp-input{
+  flex:1;height:56px;text-align:center;
+  background:rgba(14,23,38,0.8);
+  border:1px solid var(--border-glass);
+  border-radius:var(--radius-lg);
+  color:var(--text-primary);font-family:var(--font-mono);font-size:22px;font-weight:700;
+  outline:none;transition:var(--transition-fast);
+}
+.otp-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,255,0.08);}
+.otp-resend{font-size:12px;color:var(--cyan);text-align:right;margin-top:8px;cursor:pointer;}
+
+.forgot{font-size:13px;color:var(--cyan);text-align:right;margin-bottom:24px;cursor:pointer;}
+
+.btn-login{
+  width:100%;padding:18px;
+  background:var(--gradient-main);
+  border:none;border-radius:var(--radius-full);
+  font-size:16px;font-weight:700;color:#000;
+  cursor:pointer;transition:var(--transition-base);
+  box-shadow:0 6px 24px rgba(0,245,255,0.35);
+  margin-bottom:16px;letter-spacing:0.01em;
+  font-family:var(--font-body);
+}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,245,255,0.5);}
+
+.login-footer{text-align:center;font-size:13px;color:var(--text-secondary);}
+.login-footer a{color:var(--cyan);cursor:pointer;}
+
+/* AI Greeting Card */
+.ai-greeting{
+  margin-bottom:24px;
+  padding:14px 16px;
+  background:linear-gradient(135deg,rgba(0,245,255,0.06),rgba(138,43,226,0.06));
+  border:1px solid var(--border-cyan);
+  border-radius:var(--radius-xl);
+  display:flex;align-items:flex-start;gap:12px;
+}
+.ai-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--gradient-main);
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
+}
+.ai-msg{font-size:13px;color:var(--text-secondary);line-height:1.5;}
+.ai-msg strong{color:var(--cyan);}
+
+/* Tab switch */
+.form-tabs{display:flex;background:rgba(14,23,38,0.5);border-radius:var(--radius-full);padding:3px;margin-bottom:24px;}
+.tab{flex:1;padding:10px;text-align:center;border-radius:var(--radius-full);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition-fast);color:var(--text-muted);}
+.tab.active{background:var(--gradient-main);color:#000;}
+
+/* Toast notification */
+.toast{
+  position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);
+  padding:12px 20px;background:rgba(0,245,255,0.12);
+  border:1px solid var(--border-cyan);border-radius:var(--radius-full);
+  font-size:13px;color:var(--cyan);font-weight:600;
+  opacity:0;transition:all 0.3s ease;pointer-events:none;white-space:nowrap;
+  z-index:var(--z-toast);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="bio-toast" class="toast"></div>
+<main>
+<div class="phone-wrap">
+<div class="phone">
+  <!-- BG -->
+  <div class="login-bg"><div class="orb1"></div><div class="orb2"></div></div>
+
+  <div class="status-bar">
+    <span style="font-family:var(--font-mono)">9:41</span>
+    <div class="status-icons"><span style="font-size:11px">▌▌▌ WiFi 🔋</span></div>
+  </div>
+
+  <div class="login-scroll">
+    <!-- Logo & Greeting -->
+    <div class="login-header">
+      <div class="login-logo">🧬</div>
+      <div class="greeting">👋 Good morning, Arjun</div>
+      <div class="login-title">Welcome Back</div>
+      <div class="login-sub">Your financial twin has 3 new insights</div>
+    </div>
+
+    <!-- AI Greeting -->
+    <div class="ai-greeting animate-fade-in">
+      <div class="ai-avatar">🤖</div>
+      <div class="ai-msg"><strong>TwinFi AI</strong> detected a ₹4,200 saving opportunity overnight. Log in to view your personalized report.</div>
+    </div>
+
+    <!-- Biometric -->
+    <div class="biometric-row" role="group" aria-label="Biometric Login">
+      <div class="bio-pill" onclick="showBioFeedback('Face ID', '😊 Scanning face...')" role="button" tabindex="0" aria-label="Login with Face ID">
+        <span class="bio-icon">🆔</span>
+        <span class="bio-label">Face ID</span>
+      </div>
+      <div class="bio-pill" onclick="showBioFeedback('Fingerprint', '👆 Reading fingerprint...')" role="button" tabindex="0" aria-label="Login with Fingerprint">
+        <span class="bio-icon">👆</span>
+        <span class="bio-label">Fingerprint</span>
+      </div>
+    </div>
+
+    <div class="divider-row">
+      <div class="divider-line"></div>
+      <div class="divider-text">or use credentials</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="form-tabs">
+      <div class="tab active" id="tab-pwd" onclick="switchTab('pwd')">Password</div>
+      <div class="tab" id="tab-otp" onclick="switchTab('otp')">OTP Login</div>
+    </div>
+
+    <!-- Password Form -->
+    <div id="form-pwd">
+      <div class="form-group">
+        <label class="form-label">Email / Phone</label>
+        <input class="form-control" type="email" placeholder="arjun@twinfi.ai" value="arjun@twinfi.ai"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-control" type="password" placeholder="••••••••" value="••••••••"/>
+        <button class="eye-btn">👁</button>
+      </div>
+      <div class="forgot">Forgot Password?</div>
+    </div>
+
+    <!-- OTP Form -->
+    <div id="form-otp" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Mobile Number</label>
+        <input class="form-control" type="tel" placeholder="+91 98765 43210"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Enter OTP</label>
+        <div class="otp-row">
+          <input class="otp-input" maxlength="1" type="text" value="7"/>
+          <input class="otp-input" maxlength="1" type="text" value="3"/>
+          <input class="otp-input" maxlength="1" type="text" value="9"/>
+          <input class="otp-input" maxlength="1" type="text" value=""/>
+          <input class="otp-input" maxlength="1" type="text" value=""/>
+          <input class="otp-input" maxlength="1" type="text" value=""/>
+        </div>
+        <div class="otp-resend">Resend OTP in 0:47</div>
+      </div>
+    </div>
+
+    <button class="btn-login" onclick="handleLoginSubmit()">
+      🔓 Unlock My Financial Twin
+    </button>
+
+    <div class="login-footer">
+      New to TwinFi? <a href="signup.html">Create Account</a>
+    </div>
+  </div>
+</div>
+</main>
+</div>
+
+<script>
+async function handleLoginSubmit() {
+  const emailInput = document.querySelector('#form-pwd input[type="email"]');
+  const passwordInput = document.querySelector('#form-pwd input[type="password"]');
+  const email = emailInput ? emailInput.value : '';
+  const password = passwordInput ? passwordInput.value : '';
+  
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = '⏳ Unlocking Twin...';
+  btn.disabled = true;
+
+  try {
+    const res = await window.twinfiAPI.login(email, password);
+    if (res.success) {
+      window.location.href = 'home.html';
+    }
+  } catch (err) {
+    const toast = document.getElementById('bio-toast');
+    toast.textContent = '❌ ' + err.message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+    btn.textContent = '🔓 Unlock My Financial Twin';
+    btn.disabled = false;
+  }
+}
+
+function showBioFeedback(method, message) {
+  const toast = document.getElementById('bio-toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.textContent = '✅ ' + method + ' authenticated! Redirecting...';
+    setTimeout(() => {
+      toast.classList.remove('show');
+      window.location.href = 'home.html';
+    }, 1200);
+  }, 1500);
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.getElementById('form-pwd').style.display = t==='pwd'?'block':'none';
+  document.getElementById('form-otp').style.display = t==='otp'?'block':'none';
+}
+
+// OTP auto-focus
+document.querySelectorAll('.otp-input').forEach((inp,i,arr)=>{
+  inp.addEventListener('input',()=>{ if(inp.value && arr[i+1]) arr[i+1].focus(); });
+});
+</script>
+</body>
+</html>

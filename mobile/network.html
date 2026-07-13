@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Financial Twin Network</title>
+<meta name="description" content="Explore your Financial Twin Network – see how your financial decisions connect to family, advisors, and peers in your financial ecosystem."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{padding:40px 20px;}
+.phone{width:390px;height:844px;background:var(--bg-primary);border-radius:50px;box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 60px rgba(0,245,255,0.08);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.status-bar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;}
+
+.net-scroll{flex:1;overflow-y:auto;}
+.net-scroll::-webkit-scrollbar{display:none;}
+
+.net-header{padding:12px 22px;position:sticky;top:0;z-index:10;background:rgba(5,8,22,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:space-between;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.page-title{font-family:var(--font-display);font-size:17px;font-weight:700;}
+
+/* Network Canvas */
+.network-canvas-wrap{
+  margin:0;height:380px;position:relative;
+  border-bottom:1px solid var(--border-glass);
+}
+canvas#networkCanvas{position:absolute;inset:0;}
+
+/* Node Legend */
+.node-legend{
+  display:flex;gap:12px;flex-wrap:wrap;padding:14px 22px;
+  border-bottom:1px solid var(--border-glass);
+}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+
+/* Selected Node Panel */
+.node-detail{
+  margin:14px 22px;padding:16px;
+  background:linear-gradient(135deg,rgba(0,245,255,0.06),rgba(14,23,38,0.8));
+  border:1px solid rgba(0,245,255,0.2);border-radius:20px;
+  display:none;
+}
+.node-detail.show{display:block;}
+.nd-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.nd-avatar{width:44px;height:44px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.nd-name{font-weight:700;font-size:15px;margin-bottom:2px;}
+.nd-role{font-size:12px;color:var(--text-secondary);}
+.nd-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ndm{text-align:center;padding:8px;background:rgba(255,255,255,0.04);border-radius:12px;}
+.ndm-val{font-family:var(--font-mono);font-size:13px;font-weight:700;}
+.ndm-lbl{font-size:9px;color:var(--text-secondary);margin-top:2px;}
+
+/* Relationship List */
+.rel-list{padding:0 22px;margin-top:14px;}
+.rel-title{font-size:14px;font-weight:700;margin-bottom:10px;}
+.rel-item{
+  display:flex;align-items:center;gap:12px;padding:12px;
+  background:rgba(14,23,38,0.5);border:1px solid var(--border-glass);border-radius:16px;margin-bottom:8px;
+  cursor:pointer;transition:var(--transition-fast);
+}
+.rel-item:hover{border-color:rgba(255,255,255,0.12);}
+.rel-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.rel-name{font-size:13px;font-weight:600;flex:1;}
+.rel-type{font-size:11px;color:var(--text-secondary);}
+.rel-amount{font-family:var(--font-mono);font-size:12px;font-weight:700;}
+
+/* Bottom Nav */
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:76px;background:rgba(5,8,22,0.9);backdrop-filter:blur(24px);border-top:1px solid var(--border-glass);display:flex;align-items:center;justify-content:space-around;padding:0 10px;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;text-decoration:none;color:var(--text-muted);}
+.nav-center{width:52px;height:52px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(0,245,255,0.4);margin-top:-20px;cursor:pointer;}
+.ni{font-size:20px;}.nl{font-size:10px;font-weight:500;}
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+<div class="phone">
+  <div class="status-bar"><span style="font-family:var(--font-mono)">9:41</span><div style="font-size:11px">▌▌▌ WiFi 🔋</div></div>
+  <div class="net-scroll">
+    <div class="net-header">
+      <div class="back-btn" onclick="history.back()">←</div>
+      <div class="page-title">🕸️ Financial Twin Network</div>
+      <div class="back-btn">⬆️</div>
+    </div>
+
+    <!-- Network Graph -->
+    <div class="network-canvas-wrap">
+      <canvas id="networkCanvas" width="390" height="380"></canvas>
+    </div>
+
+    <!-- Legend -->
+    <div class="node-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#00F5FF"></div>You</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#00FF9D"></div>Family</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#8A2BE2"></div>Investments</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FF4D6D"></div>Loans</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FFB800"></div>Business</div>
+    </div>
+
+    <!-- Selected Node Detail -->
+    <div class="node-detail animate-fade-in" id="nodeDetail">
+      <div class="nd-header">
+        <div class="nd-avatar" id="nodeIcon">👤</div>
+        <div>
+          <div class="nd-name" id="nodeName">Priya (Spouse)</div>
+          <div class="nd-role" id="nodeRole">Joint Account Holder</div>
+        </div>
+      </div>
+      <div class="nd-metrics">
+        <div class="ndm"><div class="ndm-val" style="color:var(--cyan)" id="nm1">₹8.2L</div><div class="ndm-lbl">Joint Assets</div></div>
+        <div class="ndm"><div class="ndm-val" style="color:var(--success)" id="nm2">742</div><div class="ndm-lbl">Credit Score</div></div>
+        <div class="ndm"><div class="ndm-val" style="color:var(--warning)" id="nm3">Medium</div><div class="ndm-lbl">Risk Level</div></div>
+      </div>
+    </div>
+
+    <!-- Relationships -->
+    <div class="rel-list animate-fade-in delay-300">
+      <div class="rel-title">All Financial Connections</div>
+      <div class="rel-item" onclick="selectNode('Priya','💑','Spouse – Joint Account','₹8.2L','742','Medium')">
+        <div class="rel-icon" style="background:rgba(0,255,157,0.12)">💑</div>
+        <div><div class="rel-name">Priya Mehta</div><div class="rel-type">Spouse · Joint Account</div></div>
+        <div class="rel-amount" style="color:var(--success)">₹8.2L</div>
+      </div>
+      <div class="rel-item" onclick="selectNode('Ramesh (Father)','👴','Parent – Dependent','₹2.1L','680','Low')">
+        <div class="rel-icon" style="background:rgba(0,245,255,0.1)">👴</div>
+        <div><div class="rel-name">Ramesh Mehta</div><div class="rel-type">Father · Dependent</div></div>
+        <div class="rel-amount" style="color:var(--cyan)">₹2.1L</div>
+      </div>
+      <div class="rel-item" onclick="selectNode('Axis Bank Loan','🏦','Home Loan – Active','₹14.5L','—','High')">
+        <div class="rel-icon" style="background:rgba(255,77,109,0.1)">🏦</div>
+        <div><div class="rel-name">Axis Bank</div><div class="rel-type">Home Loan · Active</div></div>
+        <div class="rel-amount" style="color:var(--danger)">₹14.5L</div>
+      </div>
+      <div class="rel-item" onclick="selectNode('Parag Parikh Fund','📈','Mutual Fund – SIP','₹6.4L','—','Medium')">
+        <div class="rel-icon" style="background:rgba(138,43,226,0.1)">📈</div>
+        <div><div class="rel-name">Parag Parikh Fund</div><div class="rel-type">Mutual Fund · SIP</div></div>
+        <div class="rel-amount" style="color:#C77DFF">₹6.4L</div>
+      </div>
+      <div class="rel-item" onclick="selectNode('TechCo Ventures','🚀','Business – Partner','₹3.2L','—','High')">
+        <div class="rel-icon" style="background:rgba(255,184,0,0.1)">🚀</div>
+        <div><div class="rel-name">TechCo Ventures</div><div class="rel-type">Business Partner</div></div>
+        <div class="rel-amount" style="color:var(--warning)">₹3.2L</div>
+      </div>
+    </div>
+
+    <div style="height:90px;"></div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item"><div class="ni">🏠</div><div class="nl">Home</div></a>
+    <a href="dna.html" class="nav-item"><div class="ni">🧬</div><div class="nl">DNA</div></a>
+    <div class="nav-center" onclick="window.location.href='twin.html'">👤</div>
+    <a href="investments.html" class="nav-item"><div class="ni">📊</div><div class="nl">Invest</div></a>
+    <a href="profile.html" class="nav-item"><div class="ni">👤</div><div class="nl">Profile</div></a>
+  </div>
+</div>
+</div>
+
+<script>
+const canvas = document.getElementById('networkCanvas');
+const ctx = canvas.getContext('2d');
+
+// Define nodes
+const nodes = [
+  { id:0, x:195, y:190, r:28, label:'You', emoji:'🧬', color:'#00F5FF', glow:'rgba(0,245,255,0.5)', fixed:true },
+  { id:1, x:100, y:100, r:20, label:'Priya', emoji:'💑', color:'#00FF9D', glow:'rgba(0,255,157,0.4)' },
+  { id:2, x:290, y:100, r:18, label:'Father', emoji:'👴', color:'#00FF9D', glow:'rgba(0,255,157,0.3)' },
+  { id:3, x:80,  y:280, r:22, label:'Axis Loan', emoji:'🏦', color:'#FF4D6D', glow:'rgba(255,77,109,0.4)' },
+  { id:4, x:310, y:280, r:20, label:'Fund', emoji:'📈', color:'#8A2BE2', glow:'rgba(138,43,226,0.4)' },
+  { id:5, x:195, y:330, r:18, label:'Business', emoji:'🚀', color:'#FFB800', glow:'rgba(255,184,0,0.4)' },
+];
+
+const edges = [
+  {from:0,to:1,label:'Joint',dash:false},{from:0,to:2,label:'Support',dash:true},
+  {from:0,to:3,label:'Loan',dash:false},{from:0,to:4,label:'SIP',dash:false},
+  {from:0,to:5,label:'Partner',dash:true},{from:1,to:3,label:'Joint',dash:true},
+];
+
+let pulse = 0, selected = -1;
+
+function drawNetwork() {
+  ctx.clearRect(0,0,390,380);
+  pulse += 0.03;
+
+  // Background grid
+  ctx.strokeStyle='rgba(255,255,255,0.02)';ctx.lineWidth=1;
+  for(let x=0;x<390;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,380);ctx.stroke();}
+  for(let y=0;y<380;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(390,y);ctx.stroke();}
+
+  // Edges
+  edges.forEach(e=>{
+    const a=nodes[e.from],b=nodes[e.to];
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    if(e.dash) ctx.setLineDash([6,4]); else ctx.setLineDash([]);
+    ctx.strokeStyle=`rgba(0,245,255,${0.15+0.05*Math.sin(pulse)})`;
+    ctx.lineWidth=1.5;ctx.stroke();ctx.setLineDash([]);
+
+    // Edge label
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    ctx.fillStyle='rgba(170,180,197,0.7)';
+    ctx.font='9px Inter';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(e.label,mx,my);
+  });
+
+  // Nodes
+  nodes.forEach((n,i)=>{
+    const isSelected = selected===i;
+    const pulseMult = i===0 ? 1.3 : 1;
+
+    // Glow ring
+    if(isSelected || i===0){
+      const ringR = n.r + 6 + 3*Math.sin(pulse*(i===0?2:1));
+      ctx.beginPath();ctx.arc(n.x,n.y,ringR,0,Math.PI*2);
+      ctx.strokeStyle=n.glow;ctx.lineWidth=2;ctx.stroke();
+    }
+
+    // Outer pulse ring for center
+    if(i===0){
+      const outerR=n.r+14+8*Math.abs(Math.sin(pulse));
+      ctx.beginPath();ctx.arc(n.x,n.y,outerR,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(0,245,255,${0.12*Math.abs(Math.sin(pulse))})`;
+      ctx.lineWidth=1;ctx.stroke();
+    }
+
+    // Node circle
+    const grad=ctx.createRadialGradient(n.x-n.r*0.3,n.y-n.r*0.3,2,n.x,n.y,n.r);
+    grad.addColorStop(0,n.color+'44');
+    grad.addColorStop(1,n.color+'11');
+    ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+    ctx.fillStyle=grad;ctx.fill();
+    ctx.strokeStyle=n.color;ctx.lineWidth=isSelected?2.5:1.5;ctx.stroke();
+
+    // Emoji
+    ctx.font=`${Math.round(n.r*1.0)}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(n.emoji,n.x,n.y);
+
+    // Label
+    ctx.font='bold 10px Inter';ctx.fillStyle=n.color;
+    ctx.fillText(n.label,n.x,n.y+n.r+11);
+  });
+
+  requestAnimationFrame(drawNetwork);
+}
+
+drawNetwork();
+
+// Click detection
+canvas.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  nodes.forEach((n,i)=>{
+    const dx=mx-n.x,dy=my-n.y;
+    if(Math.sqrt(dx*dx+dy*dy)<n.r+8){
+      selected=i;
+      if(i>0){
+        const names=['','Priya Mehta','Ramesh Mehta','Axis Bank Loan','Parag Parikh Fund','TechCo Ventures'];
+        const roles=['','Spouse – Joint Account','Father – Dependent','Home Loan Active','Mutual Fund SIP','Business Partner'];
+        selectNode(names[i],'',roles[i],'₹'+[0,'8.2L','2.1L','14.5L','6.4L','3.2L'][i],'','');
+      }
+    }
+  });
+});
+
+function selectNode(name,icon,role,assets,credit,risk){
+  const det=document.getElementById('nodeDetail');
+  det.classList.add('show');
+  document.getElementById('nodeName').textContent=name;
+  document.getElementById('nodeRole').textContent=role;
+  document.getElementById('nm1').textContent=assets;
+  document.getElementById('nm2').textContent=credit||'N/A';
+  document.getElementById('nm3').textContent=risk||'Medium';
+}
+</script>
+</body>
+</html>

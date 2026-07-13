@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TwinFi AI – Create Account</title>
+<meta name="description" content="Join TwinFi AI – Create your Living Financial Twin. Secure signup for the world's first AI-powered financial twin platform."/>
+<link rel="stylesheet" href="../assets/css/design-system.css"/>
+<script src="../assets/js/api-client.js"></script>
+<style>
+html,body{height:100%;margin:0;background:var(--bg-primary);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;}
+.phone-wrap{display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+.phone{
+  width:390px;height:844px;
+  background:var(--bg-primary);
+  border-radius:50px;
+  box-shadow:0 0 0 8px #1c1c2e,0 40px 80px rgba(0,0,0,0.8),0 0 80px rgba(138,43,226,0.08);
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.status-bar{
+  height:44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px;font-size:13px;font-weight:600;flex-shrink:0;
+}
+.status-icons{display:flex;gap:6px;align-items:center;}
+
+/* Background orbs */
+.signup-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.orb1{position:absolute;width:300px;height:300px;top:-60px;left:-80px;background:rgba(138,43,226,0.07);border-radius:50%;filter:blur(80px);}
+.orb2{position:absolute;width:250px;height:250px;bottom:80px;right:-60px;background:rgba(0,245,255,0.06);border-radius:50%;filter:blur(80px);}
+
+.signup-scroll{
+  flex:1;overflow-y:auto;padding:20px 28px 100px;
+  display:flex;flex-direction:column;
+}
+.signup-scroll::-webkit-scrollbar{display:none;}
+
+/* Header */
+.signup-header{margin-top:12px;margin-bottom:24px;text-align:center;}
+.signup-logo{
+  width:56px;height:56px;border-radius:16px;background:var(--gradient-main);
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  margin:0 auto 14px;box-shadow:0 0 20px rgba(138,43,226,0.35);
+  animation:float 3s ease-in-out infinite;
+}
+.signup-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 14px;background:rgba(138,43,226,0.1);
+  border:1px solid rgba(138,43,226,0.3);border-radius:var(--radius-full);
+  font-size:10px;color:#C77DFF;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+  margin-bottom:10px;
+}
+.signup-title{font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-0.02em;margin-bottom:4px;}
+.signup-sub{font-size:13px;color:var(--text-secondary);}
+
+/* Steps indicator */
+.steps-row{display:flex;align-items:center;gap:6px;margin-bottom:22px;}
+.step-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--border-glass);transition:var(--transition-base);
+}
+.step-dot.active{background:var(--gradient-main);box-shadow:0 0 8px rgba(0,245,255,0.5);}
+.step-dot.done{background:var(--success);}
+.step-line{flex:1;height:1px;background:var(--border-glass);}
+.step-label{font-size:11px;color:var(--text-secondary);font-weight:500;}
+
+/* Form */
+.form-group{margin-bottom:14px;position:relative;}
+.form-label{font-size:11px;font-weight:700;color:var(--text-secondary);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:6px;}
+.form-label span{font-size:14px;}
+.form-control{
+  width:100%;padding:14px 16px;
+  background:rgba(14,23,38,0.8);
+  border:1px solid var(--border-glass);
+  border-radius:var(--radius-lg);
+  color:var(--text-primary);font-family:var(--font-body);font-size:14px;
+  outline:none;transition:var(--transition-fast);box-sizing:border-box;
+}
+.form-control:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(138,43,226,0.1);}
+.form-control::placeholder{color:var(--text-muted);}
+
+/* Name row */
+.name-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* Password strength */
+.pwd-strength{margin-top:8px;}
+.strength-bar{display:flex;gap:4px;margin-bottom:4px;}
+.sb{height:3px;flex:1;border-radius:var(--radius-full);background:var(--border-glass);transition:var(--transition-base);}
+.sb.weak{background:var(--danger);}
+.sb.medium{background:var(--warning);}
+.sb.strong{background:var(--success);}
+.strength-text{font-size:10px;color:var(--text-muted);}
+
+/* PIN Setup */
+.pin-row{display:flex;gap:10px;justify-content:center;margin-bottom:8px;}
+.pin-input{
+  width:52px;height:56px;text-align:center;
+  background:rgba(14,23,38,0.8);
+  border:1px solid var(--border-glass);
+  border-radius:var(--radius-lg);
+  color:var(--text-primary);font-family:var(--font-mono);font-size:20px;font-weight:700;
+  outline:none;transition:var(--transition-fast);
+}
+.pin-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(138,43,226,0.1);}
+.pin-hint{font-size:11px;color:var(--text-muted);text-align:center;}
+
+/* Consent */
+.consent-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.consent-check{
+  width:20px;height:20px;border-radius:6px;
+  border:1px solid var(--border-glass);background:rgba(14,23,38,0.8);
+  flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  margin-top:1px;transition:var(--transition-fast);
+}
+.consent-check.checked{background:var(--purple);border-color:var(--purple);}
+.consent-text{font-size:11px;color:var(--text-secondary);line-height:1.5;}
+.consent-text a{color:#C77DFF;cursor:pointer;}
+
+/* Security badge */
+.security-badge{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;margin-bottom:16px;
+  background:rgba(0,255,157,0.05);border:1px solid rgba(0,255,157,0.15);border-radius:var(--radius-lg);
+}
+.sb-icon{font-size:18px;}
+.sb-text{font-size:11px;color:var(--text-secondary);line-height:1.4;}
+.sb-text strong{color:var(--success);}
+
+/* CTA */
+.btn-signup{
+  width:100%;padding:16px;
+  background:linear-gradient(135deg,#8A2BE2,#C77DFF);
+  border:none;border-radius:var(--radius-full);
+  font-size:15px;font-weight:700;color:#fff;
+  cursor:pointer;transition:var(--transition-base);
+  box-shadow:0 6px 24px rgba(138,43,226,0.4);
+  margin-bottom:14px;letter-spacing:0.01em;
+  font-family:var(--font-body);
+}
+.btn-signup:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(138,43,226,0.6);}
+.btn-signup:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+.signup-footer{text-align:center;font-size:13px;color:var(--text-secondary);}
+.signup-footer a{color:#C77DFF;cursor:pointer;}
+
+/* Step panels */
+.step-panel{display:none;}
+.step-panel.active{display:block;}
+
+/* Progress bar */
+.progress-wrap{margin-bottom:20px;}
+.progress-track{height:3px;background:var(--border-glass);border-radius:var(--radius-full);overflow:hidden;}
+.progress-fill-bar{
+  height:100%;background:linear-gradient(90deg,#8A2BE2,#C77DFF);
+  border-radius:var(--radius-full);transition:width 0.5s ease;
+}
+.progress-meta{display:flex;justify-content:space-between;margin-top:6px;}
+.progress-step{font-size:11px;color:var(--text-muted);}
+.progress-pct{font-size:11px;color:#C77DFF;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+<div class="phone">
+  <!-- BG -->
+  <div class="signup-bg"><div class="orb1"></div><div class="orb2"></div></div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span style="font-family:var(--font-mono)">9:41</span>
+    <div class="status-icons"><span style="font-size:11px">▌▌▌ WiFi 🔋</span></div>
+  </div>
+
+  <div class="signup-scroll">
+    <!-- Header -->
+    <div class="signup-header">
+      <div class="signup-logo">🧬</div>
+      <div class="signup-badge">✨ Create Your Financial Twin</div>
+      <div class="signup-title">Join TwinFi AI</div>
+      <div class="signup-sub">Set up your Living Financial Twin in 3 steps</div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-track">
+        <div class="progress-fill-bar" id="progress-bar" style="width:33%"></div>
+      </div>
+      <div class="progress-meta">
+        <div class="progress-step" id="progress-step-label">Step 1 of 3 – Personal Details</div>
+        <div class="progress-pct" id="progress-pct">33%</div>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: Personal Details ── -->
+    <div class="step-panel active" id="step-1">
+      <div class="name-row">
+        <div class="form-group">
+          <label class="form-label"><span>👤</span> First Name</label>
+          <input class="form-control" type="text" placeholder="Arjun" id="first-name" autocomplete="given-name"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span>👤</span> Last Name</label>
+          <input class="form-control" type="text" placeholder="Sharma" id="last-name" autocomplete="family-name"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span>📧</span> Email Address</label>
+        <input class="form-control" type="email" placeholder="arjun@email.com" id="email" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span>📱</span> Mobile Number</label>
+        <input class="form-control" type="tel" placeholder="+91 98765 43210" id="phone" autocomplete="tel"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span>🎂</span> Date of Birth</label>
+        <input class="form-control" type="date" id="dob"/>
+      </div>
+
+      <button class="btn-signup" onclick="goToStep(2)">
+        Continue → Personal Setup
+      </button>
+    </div>
+
+    <!-- ── STEP 2: Security Setup ── -->
+    <div class="step-panel" id="step-2">
+      <div class="form-group">
+        <label class="form-label"><span>🔒</span> Create Password</label>
+        <input class="form-control" type="password" placeholder="Min. 8 characters" id="password" oninput="checkStrength(this.value)"/>
+        <div class="pwd-strength">
+          <div class="strength-bar">
+            <div class="sb" id="sb1"></div>
+            <div class="sb" id="sb2"></div>
+            <div class="sb" id="sb3"></div>
+            <div class="sb" id="sb4"></div>
+          </div>
+          <div class="strength-text" id="strength-text">Enter a password</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span>🔒</span> Confirm Password</label>
+        <input class="form-control" type="password" placeholder="Re-enter password" id="confirm-pwd"/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label"><span>🔢</span> Set 4-Digit PIN</label>
+        <div class="pin-row">
+          <input class="pin-input" maxlength="1" type="password" id="p1"/>
+          <input class="pin-input" maxlength="1" type="password" id="p2"/>
+          <input class="pin-input" maxlength="1" type="password" id="p3"/>
+          <input class="pin-input" maxlength="1" type="password" id="p4"/>
+        </div>
+        <div class="pin-hint">Used for quick in-app authentication</div>
+      </div>
+
+      <div class="security-badge">
+        <span class="sb-icon">🛡️</span>
+        <div class="sb-text"><strong>Bank-grade security.</strong> All data encrypted with AES-256. We never store your password in plain text.</div>
+      </div>
+
+      <button class="btn-signup" onclick="goToStep(3)">
+        Continue → Financial Profile
+      </button>
+      <div style="text-align:center;margin-top:8px;">
+        <span style="font-size:12px;color:var(--text-muted);cursor:pointer;" onclick="goToStep(1)">← Back</span>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: Financial Profile ── -->
+    <div class="step-panel" id="step-3">
+      <div class="form-group">
+        <label class="form-label"><span>💼</span> Employment Type</label>
+        <select class="form-control" id="emp-type">
+          <option value="">Select employment</option>
+          <option>Salaried – Private Sector</option>
+          <option>Salaried – Government</option>
+          <option>Self-Employed / Business</option>
+          <option>Freelancer</option>
+          <option>Student</option>
+          <option>Retired</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span>💰</span> Annual Income</label>
+        <select class="form-control" id="income">
+          <option value="">Select range</option>
+          <option>Below ₹3 Lakhs</option>
+          <option>₹3–6 Lakhs</option>
+          <option>₹6–10 Lakhs</option>
+          <option>₹10–25 Lakhs</option>
+          <option>₹25–50 Lakhs</option>
+          <option>Above ₹50 Lakhs</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span>📊</span> Risk Appetite</label>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <div class="risk-pill" id="rp-conservative" onclick="selectRisk('conservative')"
+            style="flex:1;padding:10px;text-align:center;border-radius:var(--radius-lg);border:1px solid var(--border-glass);cursor:pointer;font-size:12px;font-weight:600;transition:var(--transition-fast);">
+            🛡️<br/>Conservative
+          </div>
+          <div class="risk-pill" id="rp-moderate" onclick="selectRisk('moderate')"
+            style="flex:1;padding:10px;text-align:center;border-radius:var(--radius-lg);border:1px solid var(--border-cyan);background:rgba(0,245,255,0.08);cursor:pointer;font-size:12px;font-weight:600;color:var(--cyan);transition:var(--transition-fast);">
+            ⚖️<br/>Moderate
+          </div>
+          <div class="risk-pill" id="rp-aggressive" onclick="selectRisk('aggressive')"
+            style="flex:1;padding:10px;text-align:center;border-radius:var(--radius-lg);border:1px solid var(--border-glass);cursor:pointer;font-size:12px;font-weight:600;transition:var(--transition-fast);">
+            🚀<br/>Aggressive
+          </div>
+        </div>
+      </div>
+
+      <div class="consent-row">
+        <div class="consent-check checked" id="consent1" onclick="toggleConsent('consent1')">✓</div>
+        <div class="consent-text">I agree to TwinFi AI's <a>Terms of Service</a> and <a>Privacy Policy</a>. I consent to AI-powered financial analysis of my data.</div>
+      </div>
+      <div class="consent-row">
+        <div class="consent-check" id="consent2" onclick="toggleConsent('consent2')"></div>
+        <div class="consent-text">I consent to receiving personalized financial insights, alerts, and recommendations via push notifications and email.</div>
+      </div>
+
+      <button class="btn-signup" id="create-btn" onclick="createAccount()">
+        🧬 Create My Financial Twin
+      </button>
+      <div style="text-align:center;margin-top:8px;">
+        <span style="font-size:12px;color:var(--text-muted);cursor:pointer;" onclick="goToStep(2)">← Back</span>
+      </div>
+    </div>
+
+    <div class="signup-footer" style="margin-top:16px;">
+      Already have an account? <a href="login.html">Log In</a>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+let currentStep = 1;
+let selectedRisk = 'moderate';
+
+const stepLabels = ['Personal Details','Security Setup','Financial Profile'];
+const stepPcts = ['33%','67%','100%'];
+const stepWidths = ['33%','67%','100%'];
+
+function goToStep(n) {
+  document.getElementById('step-' + currentStep).classList.remove('active');
+  currentStep = n;
+  document.getElementById('step-' + n).classList.add('active');
+  document.getElementById('progress-bar').style.width = stepWidths[n-1];
+  document.getElementById('progress-pct').textContent = stepPcts[n-1];
+  document.getElementById('progress-step-label').textContent = 'Step ' + n + ' of 3 – ' + stepLabels[n-1];
+}
+
+function checkStrength(val) {
+  const bars = ['sb1','sb2','sb3','sb4'];
+  const text = document.getElementById('strength-text');
+  let score = 0;
+  if(val.length >= 8) score++;
+  if(/[A-Z]/.test(val)) score++;
+  if(/[0-9]/.test(val)) score++;
+  if(/[^A-Za-z0-9]/.test(val)) score++;
+
+  bars.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'sb';
+    if(i < score) {
+      if(score === 1) el.classList.add('weak');
+      else if(score <= 2) el.classList.add('medium');
+      else el.classList.add('strong');
+    }
+  });
+
+  const labels = ['','Weak – Add uppercase & numbers','Fair – Add special characters','Good – Almost there!','Strong 💪'];
+  text.textContent = labels[score] || 'Enter a password';
+}
+
+function selectRisk(r) {
+  selectedRisk = r;
+  ['conservative','moderate','aggressive'].forEach(type => {
+    const el = document.getElementById('rp-' + type);
+    if(type === r) {
+      el.style.borderColor = 'var(--border-cyan)';
+      el.style.background = 'rgba(0,245,255,0.08)';
+      el.style.color = 'var(--cyan)';
+    } else {
+      el.style.borderColor = 'var(--border-glass)';
+      el.style.background = 'transparent';
+      el.style.color = 'var(--text-secondary)';
+    }
+  });
+}
+
+function toggleConsent(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('checked');
+  if(el.classList.contains('checked')) el.textContent = '✓';
+  else el.textContent = '';
+}
+
+// PIN auto-focus
+const pins = ['p1','p2','p3','p4'];
+pins.forEach((id, i) => {
+  document.getElementById(id).addEventListener('input', function() {
+    if(this.value && pins[i+1]) document.getElementById(pins[i+1]).focus();
+  });
+});
+
+async function createAccount() {
+  const firstName = document.getElementById('first-name').value;
+  const lastName = document.getElementById('last-name').value;
+  const email = document.getElementById('email').value;
+  const phone = document.getElementById('phone').value;
+  const password = document.getElementById('password').value;
+  const confirmPwd = document.getElementById('confirm-pwd').value;
+  
+  if (password !== confirmPwd) {
+    alert('Passwords do not match');
+    return;
+  }
+
+  const btn = document.getElementById('create-btn');
+  btn.textContent = '⏳ Creating Your Twin...';
+  btn.disabled = true;
+
+  try {
+    const res = await window.twinfiAPI.signup({
+      first_name: firstName,
+      last_name: lastName,
+      email: email,
+      phone: phone,
+      password: password
+    });
+    if (res.success) {
+      window.location.href = 'home.html';
+    }
+  } catch (err) {
+    alert('Signup error: ' + err.message);
+    btn.textContent = '🧬 Create My Financial Twin';
+    btn.disabled = false;
+  }
+}
+
+// Initialize risk pill styling
+selectRisk('moderate');
+</script>
+</body>
+</html>
